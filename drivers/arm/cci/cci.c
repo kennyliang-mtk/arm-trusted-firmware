@@ -21,6 +21,7 @@
 #define CCI400_PART_NUM		0x420
 #define CCI500_PART_NUM		0x422
 #define CCI550_PART_NUM		0x423
+#define MT8183_CCI_PART_NUM	0xB00
 
 #define CCI400_SLAVE_PORTS	5
 #define CCI500_SLAVE_PORTS	7
@@ -92,6 +93,7 @@ static int get_slave_ports(unsigned int part_num)
 	case CCI400_PART_NUM:
 		num_slave_ports = CCI400_SLAVE_PORTS;
 		break;
+	case MT8183_CCI_PART_NUM: /* Fallthrough */
 	case CCI500_PART_NUM:
 		num_slave_ports = CCI500_SLAVE_PORTS;
 		break;
