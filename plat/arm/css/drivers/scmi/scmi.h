@@ -4,12 +4,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __CSS_SCMI_H__
-#define __CSS_SCMI_H__
+#ifndef SCMI_H
+#define SCMI_H
 
 #include <bakery_lock.h>
+#include <psci.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <spinlock.h>
 
 /* Supported SCMI Protocol Versions */
 #define SCMI_AP_CORE_PROTO_VER			MAKE_SCMI_VERSION(1, 0)
@@ -116,13 +118,20 @@ typedef struct scmi_channel_plat_info {
 	void *cookie;
 } scmi_channel_plat_info_t;
 
+
+#if HW_ASSISTED_COHERENCY
+typedef spinlock_t scmi_lock_t;
+#else
+typedef bakery_lock_t scmi_lock_t;
+#endif
+
 /*
  * Structure to represent an SCMI channel.
  */
 typedef struct scmi_channel {
 	scmi_channel_plat_info_t *info;
 	 /* The lock for channel access */
-	bakery_lock_t *lock;
+	scmi_lock_t *lock;
 	/* Indicate whether the channel is initialized */
 	int is_initialized;
 } scmi_channel_t;
@@ -151,4 +160,10 @@ int scmi_sys_pwr_state_get(void *p, uint32_t *system_state);
 int scmi_ap_core_set_reset_addr(void *p, uint64_t reset_addr, uint32_t attr);
 int scmi_ap_core_get_reset_addr(void *p, uint64_t *reset_addr, uint32_t *attr);
 
-#endif	/* __CSS_SCMI_H__ */
+/* API to get the platform specific SCMI channel information. */
+scmi_channel_plat_info_t *plat_css_get_scmi_info();
+
+/* API to override default PSCI callbacks for platforms that support SCMI. */
+const plat_psci_ops_t *css_scmi_override_pm_ops(plat_psci_ops_t *ops);
+
+#endif /* SCMI_H */

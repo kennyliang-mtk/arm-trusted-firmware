@@ -25,9 +25,10 @@
 
 IMPORT_SYM(uintptr_t, __PMF_SVC_DESCS_START__,		PMF_SVC_DESCS_START);
 IMPORT_SYM(uintptr_t, __PMF_SVC_DESCS_END__,		PMF_SVC_DESCS_END);
-IMPORT_SYM(uintptr_t, __PERCPU_TIMESTAMP_SIZE__,	PMF_PERCPU_TIMESTAMP_SIZE);
-IMPORT_SYM(intptr_t,  __PMF_TIMESTAMP_START__,		PMF_TIMESTAMP_ARRAY_START);
-IMPORT_SYM(uintptr_t, __PMF_TIMESTAMP_END__,		PMF_TIMESTAMP_ARRAY_END);
+IMPORT_SYM(uintptr_t, __PMF_PERCPU_TIMESTAMP_END__,	PMF_PERCPU_TIMESTAMP_END);
+IMPORT_SYM(uintptr_t,  __PMF_TIMESTAMP_START__,		PMF_TIMESTAMP_ARRAY_START);
+
+#define PMF_PERCPU_TIMESTAMP_SIZE	(PMF_PERCPU_TIMESTAMP_END - PMF_TIMESTAMP_ARRAY_START)
 
 #define PMF_SVC_DESCS_MAX		10
 
@@ -66,15 +67,15 @@ int pmf_setup(void)
 	pmf_svc_descs = (pmf_svc_desc_t *) PMF_SVC_DESCS_START;
 	for (ii = 0; ii < pmf_svc_descs_num; ii++) {
 
-		assert(pmf_svc_descs[ii].get_ts);
+		assert(pmf_svc_descs[ii].get_ts != NULL);
 
 		/*
 		 * Call the initialization routine for this
 		 * PMF service, if it is defined.
 		 */
-		if (pmf_svc_descs[ii].init) {
+		if (pmf_svc_descs[ii].init != NULL) {
 			rc = pmf_svc_descs[ii].init();
-			if (rc) {
+			if (rc != 0) {
 				WARN("Could not initialize PMF"
 					"service %s - skipping \n",
 					pmf_svc_descs[ii].name);
@@ -124,7 +125,7 @@ static pmf_svc_desc_t *get_service(unsigned int tid)
 	if (pmf_num_services == 0)
 		return NULL;
 
-	assert(pmf_svc_descs);
+	assert(pmf_svc_descs != NULL);
 
 	do {
 		mid = (low + high) / 2;
@@ -157,7 +158,7 @@ int pmf_get_timestamp_smc(unsigned int tid,
 		unsigned long long *ts_value)
 {
 	pmf_svc_desc_t *svc_desc;
-	assert(ts_value);
+	assert(ts_value != NULL);
 
 	/* Search for registered service. */
 	svc_desc = get_service(tid);
@@ -246,7 +247,7 @@ unsigned long long __pmf_get_timestamp(uintptr_t base_addr,
 	unsigned long long *ts_addr = (unsigned long long *)calc_ts_addr(base_addr,
 				tid, cpuid);
 
-	if (flags & PMF_CACHE_MAINT)
+	if ((flags & PMF_CACHE_MAINT) != 0U)
 		inv_dcache_range((uintptr_t)ts_addr, sizeof(unsigned long long));
 
 	return *ts_addr;

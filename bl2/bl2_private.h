@@ -4,10 +4,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __BL2_PRIVATE_H__
-#define __BL2_PRIVATE_H__
+#ifndef BL2_PRIVATE_H
+#define BL2_PRIVATE_H
 
 #if BL2_IN_XIP_MEM
+
+#include <stdint.h>
+
 /*******************************************************************************
  * Declarations of linker defined symbols which will tell us where BL2 lives
  * in Trusted ROM and RAM
@@ -33,4 +36,4 @@ void bl2_arch_setup(void);
 struct entry_point_info *bl2_load_images(void);
 void bl2_run_next_image(const struct entry_point_info *bl_ep_info);
 
-#endif /* __BL2_PRIVATE_H__ */
+#endif /* BL2_PRIVATE_H */

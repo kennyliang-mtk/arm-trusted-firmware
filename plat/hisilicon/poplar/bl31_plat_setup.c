@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2017-2018, ARM Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -9,19 +9,18 @@
 #include <assert.h>
 #include <bl31.h>
 #include <bl_common.h>
-#include <console.h>
 #include <cortex_a53.h>
 #include <debug.h>
 #include <errno.h>
 #include <generic_delay_timer.h>
 #include <mmio.h>
-#include <plat_arm.h>
+#include <pl011.h>
 #include <platform.h>
+#include <platform_def.h>
 #include <stddef.h>
 #include <string.h>
 #include "hi3798cv200.h"
 #include "plat_private.h"
-#include "platform_def.h"
 
 /* Memory ranges for code and RO data sections */
 #define BL31_RO_BASE	(unsigned long)(&__RO_START__)
@@ -35,6 +34,7 @@
 
 static entry_point_info_t bl32_image_ep_info;
 static entry_point_info_t bl33_image_ep_info;
+static console_pl011_t console;
 
 static void hisi_tzpc_sec_init(void)
 {
@@ -73,7 +73,8 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 
 	from_bl2 = (void *) arg0;
 
-	console_init(PL011_UART0_BASE, PL011_UART0_CLK_IN_HZ, PL011_BAUDRATE);
+	console_pl011_register(PL011_UART0_BASE, PL011_UART0_CLK_IN_HZ,
+			       PL011_BAUDRATE, &console);
 
 	/* Init console for crash report */
 	plat_crash_console_init();
@@ -113,8 +114,8 @@ void bl31_platform_setup(void)
 	generic_delay_timer_init();
 
 	/* Init GIC distributor and CPU interface */
-	plat_arm_gic_driver_init();
-	plat_arm_gic_init();
+	poplar_gic_driver_init();
+	poplar_gic_init();
 
 	/* Init security properties of IP blocks */
 	hisi_tzpc_sec_init();

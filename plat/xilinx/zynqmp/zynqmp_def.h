@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __ZYNQMP_DEF_H__
-#define __ZYNQMP_DEF_H__
+#ifndef ZYNQMP_DEF_H
+#define ZYNQMP_DEF_H
 
 #include <common_def.h>
 
@@ -145,13 +145,11 @@
 # error "invalid ZYNQMP_CONSOLE"
 #endif
 
-#define PLAT_ARM_CRASH_UART_BASE	ZYNQMP_UART_BASE
+#define ZYNQMP_CRASH_UART_BASE		ZYNQMP_UART_BASE
 /* impossible to call C routine how it is done now - hardcode any value */
-#define	PLAT_ARM_CRASH_UART_CLK_IN_HZ	100000000 /* FIXME */
-
+#define ZYNQMP_CRASH_UART_CLK_IN_HZ	100000000 /* FIXME */
 /* Must be non zero */
-#define ZYNQMP_UART_BAUDRATE	115200
-#define ARM_CONSOLE_BAUDRATE	ZYNQMP_UART_BAUDRATE
+#define ZYNQMP_UART_BAUDRATE		115200
 
 /* Silicon version detection */
 #define ZYNQMP_SILICON_VER_MASK		0xF000
@@ -342,4 +340,4 @@
 #define  AFIFM6_WRCTRL		U(13)
 #define  FABRIC_WIDTH		U(3)
 
-#endif /* __ZYNQMP_DEF_H__ */
+#endif /* ZYNQMP_DEF_H */

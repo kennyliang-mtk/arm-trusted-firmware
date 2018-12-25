@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __CONSOLE_H__
-#define __CONSOLE_H__
+#ifndef CONSOLE_H
+#define CONSOLE_H
 
 #include <utils_def.h>
 
@@ -52,8 +52,9 @@ typedef struct console {
  * implementation, e.g. console_16550_register() from <uart_16550.h>. Consoles
  * registered that way can be unregistered/reconfigured with below functions.
  */
-/* Remove a single console_t instance from the console list. */
-int console_unregister(console_t *console);
+/* Remove a single console_t instance from the console list. Return a pointer to
+ * the console that was removed if it was found, or NULL if not. */
+console_t *console_unregister(console_t *console);
 /* Returns 1 if this console is already registered, 0 if not */
 int console_is_registered(console_t *console);
 /*
@@ -80,5 +81,4 @@ void console_uninit(void);
 
 #endif /* __ASSEMBLY__ */
 
-#endif /* __CONSOLE_H__ */
-
+#endif /* CONSOLE_H */

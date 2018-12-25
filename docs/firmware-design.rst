@@ -981,6 +981,11 @@ services ``handle()`` function.
 On return from the handler the result registers are populated in X0-X3 before
 restoring the stack and CPU state and returning from the original SMC.
 
+Exception Handling Framework
+----------------------------
+
+Please refer to the `Exception Handling Framework`_ document.
+
 Power State Coordination Interface
 ----------------------------------
 
@@ -2532,6 +2537,12 @@ This Architecture Extension is targeted when ``ARM_ARCH_MAJOR`` == 8 and
    translation table entries for a given stage of translation for a particular
    translation regime.
 
+Armv8.3-A
+~~~~~~~~~
+
+-  Pointer Authentication features of Armv8.3-A are unconditionally enabled so
+   that lower ELs are allowed to use them without causing a trap to EL3.
+
 Armv7-A
 ~~~~~~~
 
@@ -2635,5 +2646,6 @@ References
 .. _SMC Calling Convention PDD: http://infocenter.arm.com/help/topic/com.arm.doc.den0028b/ARM_DEN0028B_SMC_Calling_Convention.pdf
 .. _TF-A Interrupt Management Design guide: ./interrupt-framework-design.rst
 .. _Xlat_tables design: xlat-tables-lib-v2-design.rst
+.. _Exception Handling Framework: exception-handling.rst
 
 .. |Image 1| image:: diagrams/rt-svc-descs-layout.png?raw=true

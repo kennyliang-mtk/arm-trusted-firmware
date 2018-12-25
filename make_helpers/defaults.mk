@@ -64,6 +64,9 @@ DYN_DISABLE_AUTH		:= 0
 # Build option to enable MPAM for lower ELs
 ENABLE_MPAM_FOR_LOWER_ELS	:= 0
 
+# Flag to Enable Position Independant support (PIE)
+ENABLE_PIE			:= 0
+
 # Flag to enable Performance Measurement Framework
 ENABLE_PMF			:= 0
 
@@ -158,6 +161,9 @@ SPD				:= none
 
 # For including the Secure Partition Manager
 ENABLE_SPM			:= 0
+
+# Use the deprecated SPM based on MM
+SPM_DEPRECATED			:= 1
 
 # Flag to introduce an infinite loop in BL1 just before it exits into the next
 # image. This is meant to help debugging the post-BL2 phase.

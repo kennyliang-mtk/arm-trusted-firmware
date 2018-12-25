@@ -5,7 +5,6 @@
  */
 #include <arch.h>
 #include <arch_helpers.h>
-#include <arm_xlat_tables.h>
 #include <assert.h>
 #include <debug.h>
 #include <mmio.h>
@@ -14,6 +13,7 @@
 #include <platform_def.h>
 #include <romlib.h>
 #include <secure_partition.h>
+#include <xlat_tables_compat.h>
 
 /* Weak definitions may be overridden in specific ARM standard platform */
 #pragma weak plat_get_ns_image_entrypoint
@@ -30,42 +30,6 @@ void arm_setup_romlib(void)
 	if (!rom_lib_init(ROMLIB_VERSION))
 		panic();
 #endif
-}
-
-/*
- * Set up the page tables for the generic and platform-specific memory regions.
- * The size of the Trusted SRAM seen by the BL image must be specified as well
- * as an array specifying the generic memory regions which can be;
- * - Code section;
- * - Read-only data section;
- * - Init code section, if applicable
- * - Coherent memory region, if applicable.
- */
-
-void __init arm_setup_page_tables(const mmap_region_t bl_regions[],
-			   const mmap_region_t plat_regions[])
-{
-#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
-	const mmap_region_t *regions = bl_regions;
-
-	while (regions->size != 0U) {
-		VERBOSE("Region: 0x%lx - 0x%lx has attributes 0x%x\n",
-				regions->base_va,
-				(regions->base_va + regions->size),
-				regions->attr);
-		regions++;
-	}
-#endif
-	/*
-	 * Map the Trusted SRAM with appropriate memory attributes.
-	 * Subsequent mappings will adjust the attributes for specific regions.
-	 */
-	mmap_add(bl_regions);
-	/* Now (re-)map the platform-specific memory regions */
-	mmap_add(plat_regions);
-
-	/* Create the page tables to reflect the above mappings */
-	init_xlat_tables();
 }
 
 uintptr_t plat_get_ns_image_entrypoint(void)
@@ -99,7 +63,7 @@ uint32_t arm_get_spsr_for_bl33_entry(void)
 	uint32_t spsr;
 
 	/* Figure out what mode we enter the non-secure world in */
-	mode = EL_IMPLEMENTED(2) ? MODE_EL2 : MODE_EL1;
+	mode = (el_implemented(2) != EL_IMPL_NONE) ? MODE_EL2 : MODE_EL1;
 
 	/*
 	 * TODO: Consider the possibility of specifying the SPSR in
@@ -144,13 +108,13 @@ void arm_configure_sys_timer(void)
 	unsigned int freq_val = plat_get_syscnt_freq2();
 
 #if ARM_CONFIG_CNTACR
-	reg_val = (1 << CNTACR_RPCT_SHIFT) | (1 << CNTACR_RVCT_SHIFT);
-	reg_val |= (1 << CNTACR_RFRQ_SHIFT) | (1 << CNTACR_RVOFF_SHIFT);
-	reg_val |= (1 << CNTACR_RWVT_SHIFT) | (1 << CNTACR_RWPT_SHIFT);
+	reg_val = (1U << CNTACR_RPCT_SHIFT) | (1U << CNTACR_RVCT_SHIFT);
+	reg_val |= (1U << CNTACR_RFRQ_SHIFT) | (1U << CNTACR_RVOFF_SHIFT);
+	reg_val |= (1U << CNTACR_RWVT_SHIFT) | (1U << CNTACR_RWPT_SHIFT);
 	mmio_write_32(ARM_SYS_TIMCTL_BASE + CNTACR_BASE(PLAT_ARM_NSTIMER_FRAME_ID), reg_val);
 #endif /* ARM_CONFIG_CNTACR */
 
-	reg_val = (1 << CNTNSAR_NS_SHIFT(PLAT_ARM_NSTIMER_FRAME_ID));
+	reg_val = (1U << CNTNSAR_NS_SHIFT(PLAT_ARM_NSTIMER_FRAME_ID));
 	mmio_write_32(ARM_SYS_TIMCTL_BASE + CNTNSAR, reg_val);
 
 	/*
@@ -164,10 +128,10 @@ void arm_configure_sys_timer(void)
 	/*
 	 * Initialize CNTFRQ register in Non-secure CNTBase frame.
 	 * This is only required for Juno, because it doesn't follow ARM ARM
-	 * in that the value updated in CNTFRQ is not reflected in CNTBASE_CNTFRQ.
-	 * Hence update the value manually.
+	 * in that the value updated in CNTFRQ is not reflected in
+	 * CNTBASEN_CNTFRQ. Hence update the value manually.
 	 */
-	mmio_write_32(ARM_SYS_CNT_BASE_NS + CNTBASE_CNTFRQ, freq_val);
+	mmio_write_32(ARM_SYS_CNT_BASE_NS + CNTBASEN_CNTFRQ, freq_val);
 #endif
 }
 #endif /* ARM_SYS_TIMCTL_BASE */
@@ -190,7 +154,7 @@ unsigned int plat_get_syscnt_freq2(void)
 	counter_base_frequency = mmio_read_32(ARM_SYS_CNTCTL_BASE + CNTFID_OFF);
 
 	/* The first entry of the frequency modes table must not be 0 */
-	if (counter_base_frequency == 0)
+	if (counter_base_frequency == 0U)
 		panic();
 
 	return counter_base_frequency;

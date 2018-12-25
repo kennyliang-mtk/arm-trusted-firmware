@@ -5,8 +5,8 @@
  * https://spdx.org/licenses
  */
 
-#ifndef __A8K_PLAT_DEF_H__
-#define __A8K_PLAT_DEF_H__
+#ifndef A8K_PLAT_DEF_H
+#define A8K_PLAT_DEF_H
 
 #include <marvell_def.h>
 
@@ -28,7 +28,10 @@
 #define MVEBU_REGS_BASE			0xF0000000
 #define MVEBU_REGS_BASE_MASK		0xF0000000
 #define MVEBU_REGS_BASE_AP(ap)		MVEBU_REGS_BASE
-#define MVEBU_CP_REGS_BASE(cp_index)	(0xF2000000 + (cp_index) * 0x2000000)
+#define MVEBU_AP_IO_BASE(ap)		0xF2000000
+#define MVEBU_CP_OFFSET			0x2000000
+#define MVEBU_CP_REGS_BASE(cp_index)	(MVEBU_AP_IO_BASE(0) + \
+						(cp_index) * MVEBU_CP_OFFSET)
 #define MVEBU_RFU_BASE			(MVEBU_REGS_BASE + 0x6F0000)
 #define MVEBU_IO_WIN_BASE(ap_index)	(MVEBU_RFU_BASE)
 #define MVEBU_IO_WIN_GCR_OFFSET		(0x70)
@@ -188,4 +191,4 @@ enum ccu_target_ids {
 };
 #endif /* __ASSEMBLER__ */
 
-#endif /* __A8K_PLAT_DEF_H__ */
+#endif /* A8K_PLAT_DEF_H */

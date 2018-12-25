@@ -30,11 +30,19 @@
  * position @h. For example
  * GENMASK_64(39, 21) gives us the 64bit vector 0x000000ffffe00000.
  */
+#if defined(__LINKER__) || defined(__ASSEMBLY__)
+#define GENMASK_32(h, l) \
+	(((0xFFFFFFFF) << (l)) & (0xFFFFFFFF >> (32 - 1 - (h))))
+
+#define GENMASK_64(h, l) \
+	((~0 << (l)) & (~0 >> (64 - 1 - (h))))
+#else
 #define GENMASK_32(h, l) \
 	(((~UINT32_C(0)) << (l)) & (~UINT32_C(0) >> (32 - 1 - (h))))
 
 #define GENMASK_64(h, l) \
 	(((~UINT64_C(0)) << (l)) & (~UINT64_C(0) >> (64 - 1 - (h))))
+#endif
 
 #ifdef AARCH32
 #define GENMASK				GENMASK_32
@@ -152,5 +160,13 @@
  */
 #define ASSERT_SYM_PTR_ALIGN(sym) assert(((size_t)(sym) % __alignof__(*(sym))) == 0)
 
+#define COMPILER_BARRIER() __asm__ volatile ("" ::: "memory")
+
+/* Compiler builtin of GCC >= 9 and planned in llvm */
+#ifdef __HAVE_SPECULATION_SAFE_VALUE
+# define SPECULATION_SAFE_VALUE(var) __builtin_speculation_safe_value(var)
+#else
+# define SPECULATION_SAFE_VALUE(var) var
+#endif
 
 #endif /* UTILS_DEF_H */

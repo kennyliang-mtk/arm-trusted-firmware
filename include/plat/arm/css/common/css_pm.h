@@ -4,15 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __CSS_PM_H__
-#define __CSS_PM_H__
+#ifndef CSS_PM_H
+#define CSS_PM_H
 
 #include <cdefs.h>
 #include <psci.h>
 #include <stdint.h>
-
-/* System power domain at level 2, as currently implemented by CSS platforms */
-#define CSS_SYSTEM_PWR_DMN_LVL		ARM_PWR_LVL2
 
 /* Macros to read the CSS power domain state */
 #define CSS_CORE_PWR_STATE(state)	(state)->pwr_domain_state[ARM_PWR_LVL0]
@@ -45,4 +42,4 @@ int css_node_hw_state(u_register_t mpidr, unsigned int power_level);
  */
 extern const uint32_t plat_css_core_pos_to_scmi_dmn_id_map[];
 
-#endif /* __CSS_PM_H__ */
+#endif /* CSS_PM_H */

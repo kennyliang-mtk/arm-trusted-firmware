@@ -16,10 +16,6 @@ ENABLE_SVE_FOR_NS	:= 0
 
 WORKAROUND_CVE_2017_5715	:=	0
 
-ARM_XLAT_TABLES_LIB_V1		:=	1
-$(eval $(call assert_boolean,ARM_XLAT_TABLES_LIB_V1))
-$(eval $(call add_define,ARM_XLAT_TABLES_LIB_V1))
-
 ifdef ZYNQMP_ATF_MEM_BASE
     $(eval $(call add_define,ZYNQMP_ATF_MEM_BASE))
 
@@ -64,7 +60,6 @@ PLAT_BL_COMMON_SOURCES	:=	lib/xlat_tables/xlat_tables_common.c		\
 				drivers/arm/gic/v2/gicv2_helpers.c		\
 				drivers/cadence/uart/aarch64/cdns_console.S	\
 				drivers/console/aarch64/console.S		\
-				plat/arm/common/aarch64/arm_helpers.S		\
 				plat/arm/common/arm_cci.c			\
 				plat/arm/common/arm_common.c			\
 				plat/arm/common/arm_gicv2.c			\

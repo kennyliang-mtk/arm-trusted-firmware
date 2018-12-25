@@ -3,8 +3,8 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef __CPU_MACROS_S__
-#define __CPU_MACROS_S__
+#ifndef CPU_MACROS_S
+#define CPU_MACROS_S
 
 #include <arch.h>
 #include <errata_report.h>
@@ -183,10 +183,9 @@
 	.endif
 
 	/*
-	 * Weakly-bound, optional errata status printing function for CPUs of
+	 * Mandatory errata status printing function for CPUs of
 	 * this class.
 	 */
-	.weak \_name\()_errata_report
 	.quad \_name\()_errata_report
 
 #ifdef IMAGE_BL31
@@ -256,8 +255,6 @@
 	.endm
 #endif
 
-#endif /* __CPU_MACROS_S__ */
-
 	/*
 	 * This macro is used on some CPUs to detect if they are vulnerable
 	 * to CVE-2017-5715.
@@ -272,3 +269,19 @@
 	cmp	\_reg, #1
 	beq	\_label
 	.endm
+
+	/*
+	 * Helper macro that reads the part number of the current
+	 * CPU and jumps to the given label if it matches the CPU
+	 * MIDR provided.
+	 *
+	 * Clobbers x0.
+	 */
+	.macro  jump_if_cpu_midr _cpu_midr, _label
+	mrs	x0, midr_el1
+	ubfx	x0, x0, MIDR_PN_SHIFT, #12
+	cmp	w0, #((\_cpu_midr >> MIDR_PN_SHIFT) & MIDR_PN_MASK)
+	b.eq	\_label
+	.endm
+
+#endif /* CPU_MACROS_S */

@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __PLATFORM_DEF_H__
-#define __PLATFORM_DEF_H__
+#ifndef PLATFORM_DEF_H
+#define PLATFORM_DEF_H
 
 #include <arch.h>
 #include <common_def.h>
@@ -169,7 +169,7 @@
 #define MAX_XLAT_TABLES			6
 #define MAX_IO_DEVICES			2
 #define MAX_IO_HANDLES			3
-#define MAX_IO_BLOCK_DEVICES		1
+#define MAX_IO_BLOCK_DEVICES		1U
 
 /* UART defines */
 #if PLAT_WARP7_UART == 1
@@ -214,4 +214,4 @@
  */
 #define SYS_COUNTER_FREQ_IN_TICKS	8000000		/* 8 MHz */
 
-#endif /* __PLATFORM_DEF_H__ */
+#endif /* PLATFORM_DEF_H */

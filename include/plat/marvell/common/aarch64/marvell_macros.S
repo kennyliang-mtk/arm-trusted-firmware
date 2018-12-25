@@ -5,8 +5,8 @@
  * https://spdx.org/licenses
  */
 
-#ifndef __MARVELL_MACROS_S__
-#define __MARVELL_MACROS_S__
+#ifndef MARVELL_MACROS_S
+#define MARVELL_MACROS_S
 
 #include <cci.h>
 #include <gic_common.h>
@@ -45,7 +45,7 @@ spacer:
 	 * Clobbers: x0 - x10, sp
 	 * ---------------------------------------------
 	 */
-	.macro arm_print_gic_regs
+	.macro marvell_print_gic_regs
 	/* Check for GICv3 system register access */
 	mrs	x7, id_aa64pfr0_el1
 	ubfx	x7, x7, #ID_AA64PFR0_GIC_SHIFT, #ID_AA64PFR0_GIC_WIDTH
@@ -131,4 +131,4 @@ cci_iface_regs:
 	.endm
 
 
-#endif /* __MARVELL_MACROS_S__ */
+#endif /* MARVELL_MACROS_S */

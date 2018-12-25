@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __CSS_DEF_H__
-#define __CSS_DEF_H__
+#ifndef CSS_DEF_H
+#define CSS_DEF_H
 
 #include <arm_def.h>
 #include <gic_common.h>
@@ -25,6 +25,11 @@
 /* System Security Control Registers */
 #define SSC_REG_BASE			0x2a420000
 #define SSC_GPRETN			(SSC_REG_BASE + 0x030)
+
+/* System ID Registers Unit */
+#define SID_REG_BASE			0x2a4a0000
+#define SID_SYSTEM_ID_OFFSET		0x40
+#define SID_SYSTEM_CFG_OFFSET		0x70
 
 /* The slave_bootsecure controls access to GPU, DMC and CS. */
 #define CSS_NIC400_SLAVE_BOOTSECURE	8
@@ -123,6 +128,8 @@
 #define SSC_VERSION_DESIGNER_ID_MASK		0xff
 #define SSC_VERSION_PART_NUM_MASK		0xfff
 
+#define SID_SYSTEM_ID_PART_NUM_MASK		0xfff
+
 /* SSC debug configuration registers */
 #define SSC_DBGCFG_SET		0x14
 #define SSC_DBGCFG_CLR		0x18
@@ -193,4 +200,4 @@
 #define CSS_CPU_PWR_STATE_OFF		0
 #define CSS_CPU_PWR_STATE(state, n)	(((state) >> (n)) & 1)
 
-#endif /* __CSS_DEF_H__ */
+#endif /* CSS_DEF_H */

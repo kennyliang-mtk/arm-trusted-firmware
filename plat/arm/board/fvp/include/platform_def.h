@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __PLATFORM_DEF_H__
-#define __PLATFORM_DEF_H__
+#ifndef PLATFORM_DEF_H
+#define PLATFORM_DEF_H
 
 /* Enable the dynamic translation tables library. */
 #ifdef AARCH32
@@ -13,14 +13,13 @@
 #  define PLAT_XLAT_TABLES_DYNAMIC     1
 # endif
 #else
-# if defined(IMAGE_BL31) && RESET_TO_BL31
+# if defined(IMAGE_BL31) && (RESET_TO_BL31 || (ENABLE_SPM && !SPM_DEPRECATED))
 #  define PLAT_XLAT_TABLES_DYNAMIC     1
 # endif
 #endif /* AARCH32 */
 
 #include <arm_def.h>
 #include <arm_spm_def.h>
-#include <board_arm_def.h>
 #include <common_def.h>
 #include <tzc400.h>
 #include <utils_def.h>
@@ -45,24 +44,26 @@
  */
 #define PLAT_ARM_CLUSTER_COUNT		FVP_CLUSTER_COUNT
 
-#define PLAT_ARM_TRUSTED_ROM_BASE	0x00000000
-#define PLAT_ARM_TRUSTED_ROM_SIZE	0x04000000	/* 64 MB */
+#define PLAT_ARM_TRUSTED_SRAM_SIZE	UL(0x00040000)	/* 256 KB */
 
-#define PLAT_ARM_TRUSTED_DRAM_BASE	0x06000000
-#define PLAT_ARM_TRUSTED_DRAM_SIZE	0x02000000	/* 32 MB */
+#define PLAT_ARM_TRUSTED_ROM_BASE	UL(0x00000000)
+#define PLAT_ARM_TRUSTED_ROM_SIZE	UL(0x04000000)	/* 64 MB */
+
+#define PLAT_ARM_TRUSTED_DRAM_BASE	UL(0x06000000)
+#define PLAT_ARM_TRUSTED_DRAM_SIZE	UL(0x02000000)	/* 32 MB */
 
 /* virtual address used by dynamic mem_protect for chunk_base */
 #define PLAT_ARM_MEM_PROTEC_VA_FRAME	UL(0xc0000000)
 
 /* No SCP in FVP */
-#define PLAT_ARM_SCP_TZC_DRAM1_SIZE	ULL(0x0)
+#define PLAT_ARM_SCP_TZC_DRAM1_SIZE	UL(0x0)
 
-#define PLAT_ARM_DRAM2_SIZE		ULL(0x80000000)
+#define PLAT_ARM_DRAM2_SIZE		UL(0x80000000)
 
 /*
  * Load address of BL33 for this platform port
  */
-#define PLAT_ARM_NS_IMAGE_OFFSET	(ARM_DRAM1_BASE + U(0x8000000))
+#define PLAT_ARM_NS_IMAGE_OFFSET	(ARM_DRAM1_BASE + UL(0x8000000))
 
 /*
  * PLAT_ARM_MMAP_ENTRIES depends on the number of entries in the
@@ -71,8 +72,8 @@
 #if defined(IMAGE_BL31)
 # if ENABLE_SPM
 #  define PLAT_ARM_MMAP_ENTRIES		9
-#  define MAX_XLAT_TABLES		7
-#  define PLAT_SP_IMAGE_MMAP_REGIONS	7
+#  define MAX_XLAT_TABLES		9
+#  define PLAT_SP_IMAGE_MMAP_REGIONS	30
 #  define PLAT_SP_IMAGE_MAX_XLAT_TABLES	10
 # else
 #  define PLAT_ARM_MMAP_ENTRIES		8
@@ -93,18 +94,18 @@
  * PLAT_ARM_MAX_BL1_RW_SIZE is calculated using the current BL1 RW debug size
  * plus a little space for growth.
  */
-#define PLAT_ARM_MAX_BL1_RW_SIZE	0xB000
+#define PLAT_ARM_MAX_BL1_RW_SIZE	UL(0xB000)
 
 /*
  * PLAT_ARM_MAX_ROMLIB_RW_SIZE is define to use a full page
  */
 
 #if USE_ROMLIB
-#define PLAT_ARM_MAX_ROMLIB_RW_SIZE	0x1000
-#define PLAT_ARM_MAX_ROMLIB_RO_SIZE	0xe000
+#define PLAT_ARM_MAX_ROMLIB_RW_SIZE	UL(0x1000)
+#define PLAT_ARM_MAX_ROMLIB_RO_SIZE	UL(0xe000)
 #else
-#define PLAT_ARM_MAX_ROMLIB_RW_SIZE	0
-#define PLAT_ARM_MAX_ROMLIB_RO_SIZE	0
+#define PLAT_ARM_MAX_ROMLIB_RW_SIZE	UL(0)
+#define PLAT_ARM_MAX_ROMLIB_RO_SIZE	UL(0)
 #endif
 
 /*
@@ -112,9 +113,9 @@
  * little space for growth.
  */
 #if TRUSTED_BOARD_BOOT
-# define PLAT_ARM_MAX_BL2_SIZE		0x1D000
+# define PLAT_ARM_MAX_BL2_SIZE		UL(0x1D000)
 #else
-# define PLAT_ARM_MAX_BL2_SIZE		0x11000
+# define PLAT_ARM_MAX_BL2_SIZE		UL(0x11000)
 #endif
 
 /*
@@ -122,7 +123,11 @@
  * calculated using the current BL31 PROGBITS debug size plus the sizes of
  * BL2 and BL1-RW
  */
-#define PLAT_ARM_MAX_BL31_SIZE		0x3B000
+#if ENABLE_SPM && !SPM_DEPRECATED
+#define PLAT_ARM_MAX_BL31_SIZE		UL(0x60000)
+#else
+#define PLAT_ARM_MAX_BL31_SIZE		UL(0x3B000)
+#endif
 
 #ifdef AARCH32
 /*
@@ -130,8 +135,47 @@
  * calculated using the current SP_MIN PROGBITS debug size plus the sizes of
  * BL2 and BL1-RW
  */
-# define PLAT_ARM_MAX_BL32_SIZE		0x3B000
+# define PLAT_ARM_MAX_BL32_SIZE		UL(0x3B000)
 #endif
+
+/*
+ * Size of cacheable stacks
+ */
+#if defined(IMAGE_BL1)
+# if TRUSTED_BOARD_BOOT
+#  define PLATFORM_STACK_SIZE		UL(0x1000)
+# else
+#  define PLATFORM_STACK_SIZE		UL(0x440)
+# endif
+#elif defined(IMAGE_BL2)
+# if TRUSTED_BOARD_BOOT
+#  define PLATFORM_STACK_SIZE		UL(0x1000)
+# else
+#  define PLATFORM_STACK_SIZE		UL(0x400)
+# endif
+#elif defined(IMAGE_BL2U)
+# define PLATFORM_STACK_SIZE		UL(0x400)
+#elif defined(IMAGE_BL31)
+# if ENABLE_SPM
+#  define PLATFORM_STACK_SIZE		UL(0x600)
+# elif PLAT_XLAT_TABLES_DYNAMIC
+#  define PLATFORM_STACK_SIZE		UL(0x800)
+# else
+#  define PLATFORM_STACK_SIZE		UL(0x400)
+# endif
+#elif defined(IMAGE_BL32)
+# define PLATFORM_STACK_SIZE		UL(0x440)
+#endif
+
+#define MAX_IO_DEVICES			3
+#define MAX_IO_HANDLES			4
+
+/* Reserve the last block of flash for PSCI MEM PROTECT flag */
+#define PLAT_ARM_FIP_BASE		V2M_FLASH0_BASE
+#define PLAT_ARM_FIP_MAX_SIZE		(V2M_FLASH0_SIZE - V2M_FLASH_BLOCK_SIZE)
+
+#define PLAT_ARM_NVM_BASE		V2M_FLASH0_BASE
+#define PLAT_ARM_NVM_SIZE		(V2M_FLASH0_SIZE - V2M_FLASH_BLOCK_SIZE)
 
 /*
  * PL011 related constants
@@ -151,24 +195,24 @@
 #define PLAT_ARM_TSP_UART_BASE		V2M_IOFPGA_UART2_BASE
 #define PLAT_ARM_TSP_UART_CLK_IN_HZ	V2M_IOFPGA_UART2_CLK_IN_HZ
 
-#define PLAT_FVP_SMMUV3_BASE		0x2b400000
+#define PLAT_FVP_SMMUV3_BASE		UL(0x2b400000)
 
 /* CCI related constants */
-#define PLAT_FVP_CCI400_BASE		0x2c090000
+#define PLAT_FVP_CCI400_BASE		UL(0x2c090000)
 #define PLAT_FVP_CCI400_CLUS0_SL_PORT	3
 #define PLAT_FVP_CCI400_CLUS1_SL_PORT	4
 
 /* CCI-500/CCI-550 on Base platform */
-#define PLAT_FVP_CCI5XX_BASE		0x2a000000
+#define PLAT_FVP_CCI5XX_BASE		UL(0x2a000000)
 #define PLAT_FVP_CCI5XX_CLUS0_SL_PORT	5
 #define PLAT_FVP_CCI5XX_CLUS1_SL_PORT	6
 
 /* CCN related constants. Only CCN 502 is currently supported */
-#define PLAT_ARM_CCN_BASE		0x2e000000
+#define PLAT_ARM_CCN_BASE		UL(0x2e000000)
 #define PLAT_ARM_CLUSTER_TO_CCN_ID_MAP	1, 5, 7, 11
 
 /* System timer related constants */
-#define PLAT_ARM_NSTIMER_FRAME_ID		1
+#define PLAT_ARM_NSTIMER_FRAME_ID		U(1)
 
 /* Mailbox base address */
 #define PLAT_ARM_TRUSTED_MAILBOX_BASE	ARM_TRUSTED_SRAM_BASE
@@ -189,7 +233,7 @@
  * Give access to the CPUs and Virtio. Some devices
  * would normally use the default ID so allow that too.
  */
-#define PLAT_ARM_TZC_BASE		0x2a4a0000
+#define PLAT_ARM_TZC_BASE		UL(0x2a4a0000)
 #define PLAT_ARM_TZC_FILTERS		TZC_400_REGION_ATTR_FILTER_BIT(0)
 
 #define PLAT_ARM_TZC_NS_DEV_ACCESS	(				\
@@ -228,4 +272,6 @@
 #define PLAT_ARM_SP_IMAGE_STACK_BASE	(ARM_SP_IMAGE_NS_BUF_BASE +	\
 					 ARM_SP_IMAGE_NS_BUF_SIZE)
 
-#endif /* __PLATFORM_DEF_H__ */
+#define PLAT_SP_PRI			PLAT_RAS_PRI
+
+#endif /* PLATFORM_DEF_H */

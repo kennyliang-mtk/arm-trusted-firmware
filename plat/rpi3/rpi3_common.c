@@ -23,7 +23,12 @@
 
 #define MAP_SHARED_RAM	MAP_REGION_FLAT(SHARED_RAM_BASE,		\
 					SHARED_RAM_SIZE,		\
-					MT_DEVICE  | MT_RW | MT_SECURE)
+					MT_DEVICE | MT_RW | MT_SECURE)
+
+#ifdef RPI3_PRELOADED_DTB_BASE
+#define MAP_NS_DTB	MAP_REGION_FLAT(RPI3_PRELOADED_DTB_BASE, 0x10000, \
+					MT_MEMORY | MT_RW | MT_NS)
+#endif
 
 #define MAP_NS_DRAM0	MAP_REGION_FLAT(NS_DRAM0_BASE, NS_DRAM0_SIZE,	\
 					MT_MEMORY | MT_RW | MT_NS)
@@ -74,6 +79,9 @@ static const mmap_region_t plat_rpi3_mmap[] = {
 static const mmap_region_t plat_rpi3_mmap[] = {
 	MAP_SHARED_RAM,
 	MAP_DEVICE0,
+#ifdef RPI3_PRELOADED_DTB_BASE
+	MAP_NS_DTB,
+#endif
 #ifdef BL32_BASE
 	MAP_BL32_MEM,
 #endif
@@ -88,6 +96,10 @@ static console_16550_t rpi3_console;
 
 void rpi3_console_init(void)
 {
+	int console_scope = CONSOLE_FLAG_BOOT;
+#if RPI3_RUNTIME_UART != -1
+	console_scope |= CONSOLE_FLAG_RUNTIME;
+#endif
 	int rc = console_16550_register(PLAT_RPI3_UART_BASE,
 					PLAT_RPI3_UART_CLK_IN_HZ,
 					PLAT_RPI3_UART_BAUDRATE,
@@ -101,8 +113,7 @@ void rpi3_console_init(void)
 		panic();
 	}
 
-	console_set_scope(&rpi3_console.console,
-			  CONSOLE_FLAG_BOOT | CONSOLE_FLAG_RUNTIME);
+	console_set_scope(&rpi3_console.console, console_scope);
 }
 
 /*******************************************************************************

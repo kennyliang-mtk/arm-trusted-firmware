@@ -26,6 +26,14 @@ Allwinner ARMv8 platform port
 :F: plat/allwinner/
 :F: drivers/allwinner/
 
+Amlogic Meson S905 (GXBB) platform port
+---------------------------------------
+:M: Antonio Niño Díaz <antonio.ninodiaz@arm.com>
+:G: `antonio-nino-diaz-arm`_
+:F: docs/plat/meson-gxbb.rst
+:F: drivers/meson/
+:F: plat/meson/gxbb/
+
 Armv7-A architecture port
 -------------------------
 :M: Etienne Carriere <etienne.carriere@linaro.org>
@@ -39,6 +47,23 @@ Arm System Guidance for Infrastructure / Mobile FVP platforms
 :F: plat/arm/css/sgm/
 :F: plat/arm/board/sgi575/
 :F: plat/arm/board/sgm775/
+
+Console API framework
+---------------------
+:M: Julius Werner <jwerner@chromium.org>
+:G: `jwerner-chromium`_
+:F: drivers/console/
+:F: include/drivers/console.h
+:F: plat/common/aarch64/crash_console_helpers.S
+
+coreboot support libraries
+--------------------------
+:M: Julius Werner <jwerner@chromium.org>
+:G: `jwerner-chromium`_
+:F: drivers/coreboot/
+:F: include/drivers/coreboot/
+:F: include/lib/coreboot.h
+:F: lib/coreboot/
 
 eMMC/UFS drivers
 ----------------
@@ -81,7 +106,7 @@ Marvell platform ports and SoC drivers
 :F: docs/plat/marvell/
 :F: plat/marvell/
 :F: drivers/marvell/
-:F: tools/doimage/
+:F: tools/marvell/
 
 NVidia platform ports
 ---------------------
@@ -139,6 +164,15 @@ Raspberry Pi 3 platform port
 :G: `antonio-nino-diaz-arm`_
 :F: docs/plat/rpi3.rst
 :F: plat/rpi3/
+
+Renesas rcar-gen3 platform port
+-------------------------------
+:M: Jorge Ramirez-Ortiz  <jramirez@baylibre.com>
+:G: `ldts`_
+:F: docs/plat/rcar-gen3.rst
+:F: plat/renesas/rcar
+:F: drivers/renesas/rcar
+:F: tools/renesas/rcar_layout_create
 
 RockChip platform port
 ----------------------
@@ -208,6 +242,7 @@ Xilinx platform port
 .. _glneo: https://github.com/glneo
 .. _hzhuang1: https://github.com/hzhuang1
 .. _jenswi-linaro: https://github.com/jenswi-linaro
+.. _ldts: https://github.com/ldts
 .. _niej: https://github.com/niej
 .. _kostapr: https://github.com/kostapr
 .. _masahir0y: https://github.com/masahir0y

@@ -12,7 +12,7 @@ COLD_BOOT_SINGLE_CPU	:=	1
 PROGRAMMABLE_RESET_ADDRESS:=	1
 
 # System coherency is managed in hardware
-WARMBOOT_ENABLE_DCACHE_EARLY:=	1
+HW_ASSISTED_COHERENCY	:=	1
 USE_COHERENT_MEM	:=	0
 
 # A53 erratum for SoC. (enable them all)
@@ -21,6 +21,10 @@ ERRATA_A53_835769	:=	1
 ERRATA_A53_836870	:=	1
 ERRATA_A53_843419	:=	1
 ERRATA_A53_855873	:=	1
+
+# Leave the caches enabled on core powerdown path
+TI_AM65X_WORKAROUND	:=	1
+$(eval $(call add_define,TI_AM65X_WORKAROUND))
 
 MULTI_CONSOLE_API	:=	1
 TI_16550_MDR_QUIRK	:=	1
@@ -31,13 +35,10 @@ include lib/xlat_tables_v2/xlat_tables.mk
 
 PLAT_INCLUDES		+=	\
 				-I${PLAT_PATH}/include			\
-				-Iinclude/plat/arm/common/		\
-				-Iinclude/plat/arm/common/aarch64/	\
 				-I${PLAT_PATH}/common/drivers/sec_proxy	\
 				-I${PLAT_PATH}/common/drivers/ti_sci	\
 
 K3_CONSOLE_SOURCES	+=	\
-				drivers/console/aarch64/console.S	\
 				drivers/ti/uart/aarch64/16550_console.S	\
 				${PLAT_PATH}/common/k3_console.c	\
 
@@ -59,7 +60,6 @@ K3_TI_SCI_SOURCES	+=	\
 				${PLAT_PATH}/common/drivers/ti_sci/ti_sci.c \
 
 PLAT_BL_COMMON_SOURCES	+=	\
-				plat/arm/common/arm_common.c		\
 				lib/cpus/aarch64/cortex_a53.S		\
 				${XLAT_TABLES_LIB_SRCS}			\
 				${K3_CONSOLE_SOURCES}			\

@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __TBBR_IMG_DEF_H__
-#define __TBBR_IMG_DEF_H__
+#ifndef TBBR_IMG_DEF_H
+#define TBBR_IMG_DEF_H
 
 #include <utils_def.h>
 
@@ -77,7 +77,13 @@
 /* NT_FW_CONFIG */
 #define NT_FW_CONFIG_ID			U(27)
 
-/* Define size of the array */
-#define MAX_NUMBER_IDS			U(28)
+/* GPT Partition */
+#define GPT_IMAGE_ID			U(28)
 
-#endif /* __TBBR_IMG_DEF_H__ */
+/* Binary with STM32 header */
+#define STM32_IMAGE_ID			U(29)
+
+/* Define size of the array */
+#define MAX_NUMBER_IDS			U(30)
+
+#endif /* TBBR_IMG_DEF_H */

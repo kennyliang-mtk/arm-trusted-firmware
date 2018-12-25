@@ -26,6 +26,8 @@ SECTIONS
     ASSERT(. == ALIGN(PAGE_SIZE),
            "BL31_BASE address is not aligned on a page boundary.")
 
+    __BL31_START__ = .;
+
 #if SEPARATE_CODE_AND_RODATA
     .text . : {
         __TEXT_START__ = .;
@@ -63,6 +65,16 @@ SECTIONS
         KEEP(*(cpu_ops))
         __CPU_OPS_END__ = .;
 
+        /*
+         * Keep the .got section in the RO section as it is patched
+         * prior to enabling the MMU and having the .got in RO is better for
+         * security. GOT is a table of addresses so ensure 8-byte alignment.
+         */
+        . = ALIGN(8);
+        __GOT_START__ = .;
+        *(.got)
+        __GOT_END__ = .;
+
         /* Place pubsub sections for events */
         . = ALIGN(8);
 #include <pubsub_events.h>
@@ -99,6 +111,16 @@ SECTIONS
         __CPU_OPS_START__ = .;
         KEEP(*(cpu_ops))
         __CPU_OPS_END__ = .;
+
+        /*
+         * Keep the .got section in the RO section as it is patched
+         * prior to enabling the MMU and having the .got in RO is better for
+         * security. GOT is a table of addresses so ensure 8-byte alignment.
+         */
+        . = ALIGN(8);
+        __GOT_START__ = .;
+        *(.got)
+        __GOT_END__ = .;
 
         /* Place pubsub sections for events */
         . = ALIGN(8);
@@ -153,6 +175,17 @@ SECTIONS
         __DATA_END__ = .;
     } >RAM
 
+    /*
+     * .rela.dyn needs to come after .data for the read-elf utility to parse
+     * this section correctly. Ensure 8-byte alignment so that the fields of
+     * RELA data structure are aligned.
+     */
+    . = ALIGN(8);
+    __RELA_START__ = .;
+    .rela.dyn . : {
+    } >RAM
+    __RELA_END__ = .;
+
 #ifdef BL31_PROGBITS_LIMIT
     ASSERT(. <= BL31_PROGBITS_LIMIT, "BL31 progbits has exceeded its limit.")
 #endif
@@ -188,8 +221,15 @@ SECTIONS
         __PERCPU_BAKERY_LOCK_SIZE__ = ABSOLUTE(. - __BAKERY_LOCK_START__);
         . = . + (__PERCPU_BAKERY_LOCK_SIZE__ * (PLATFORM_CORE_COUNT - 1));
         __BAKERY_LOCK_END__ = .;
+
+	/*
+	 * If BL31 doesn't use any bakery lock then __PERCPU_BAKERY_LOCK_SIZE__
+	 * will be zero. For this reason, the only two valid values for
+	 * __PERCPU_BAKERY_LOCK_SIZE__ are 0 or the platform defined value
+	 * PLAT_PERCPU_BAKERY_LOCK_SIZE.
+	 */
 #ifdef PLAT_PERCPU_BAKERY_LOCK_SIZE
-    ASSERT(__PERCPU_BAKERY_LOCK_SIZE__ == PLAT_PERCPU_BAKERY_LOCK_SIZE,
+    ASSERT((__PERCPU_BAKERY_LOCK_SIZE__ == 0) || (__PERCPU_BAKERY_LOCK_SIZE__ == PLAT_PERCPU_BAKERY_LOCK_SIZE),
         "PLAT_PERCPU_BAKERY_LOCK_SIZE does not match bakery lock requirements");
 #endif
 #endif
@@ -257,12 +297,6 @@ SECTIONS
      */
     __RW_END__ = .;
     __BL31_END__ = .;
-
-    __BSS_SIZE__ = SIZEOF(.bss);
-#if USE_COHERENT_MEM
-    __COHERENT_RAM_UNALIGNED_SIZE__ =
-        __COHERENT_RAM_END_UNALIGNED__ - __COHERENT_RAM_START__;
-#endif
 
     ASSERT(. <= BL31_LIMIT, "BL31 image has exceeded its limit.")
 }

@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __BL_COMMON_H__
-#define __BL_COMMON_H__
+#ifndef BL_COMMON_H
+#define BL_COMMON_H
 
 #include <ep_info.h>
 #include <param_header.h>
@@ -83,6 +83,7 @@ IMPORT_SYM(unsigned long, __BL2_END__,		BL2_END);
 #elif defined(IMAGE_BL2U)
 IMPORT_SYM(unsigned long, __BL2U_END__,		BL2U_END);
 #elif defined(IMAGE_BL31)
+IMPORT_SYM(unsigned long, __BL31_START__,	BL31_START);
 IMPORT_SYM(unsigned long, __BL31_END__,		BL31_END);
 #elif defined(IMAGE_BL32)
 IMPORT_SYM(unsigned long, __BL32_END__,		BL32_END);
@@ -193,6 +194,11 @@ extern const char version_string[];
 void print_entry_point_info(const entry_point_info_t *ep_info);
 uintptr_t page_align(uintptr_t value, unsigned dir);
 
+struct mmap_region;
+
+void setup_page_tables(const struct mmap_region *bl_regions,
+			   const struct mmap_region *plat_regions);
+
 #endif /*__ASSEMBLY__*/
 
-#endif /* __BL_COMMON_H__ */
+#endif /* BL_COMMON_H */

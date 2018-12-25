@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __EL3_COMMON_MACROS_S__
-#define __EL3_COMMON_MACROS_S__
+#ifndef EL3_COMMON_MACROS_S
+#define EL3_COMMON_MACROS_S
 
 #include <arch.h>
 #include <asm_macros.S>
@@ -177,9 +177,13 @@
 		 *
 		 * SCTLR.V: Set to zero to select the normal exception vectors
 		 *  with base address held in VBAR.
+		 *
+		 * SCTLR.DSSBS: Set to zero to disable speculation store bypass
+		 *  safe behaviour upon exception entry to EL3.
 		 * -------------------------------------------------------------
 		 */
-		ldr     r0, =(SCTLR_RESET_VAL & ~(SCTLR_TE_BIT | SCTLR_EE_BIT | SCTLR_V_BIT))
+		ldr     r0, =(SCTLR_RESET_VAL & ~(SCTLR_TE_BIT | SCTLR_EE_BIT | \
+				SCTLR_V_BIT | SCTLR_DSSBS_BIT))
 		stcopr	r0, SCTLR
 		isb
 	.endif /* _init_sctlr */
@@ -313,4 +317,4 @@
 #endif
 	.endm
 
-#endif /* __EL3_COMMON_MACROS_S__ */
+#endif /* EL3_COMMON_MACROS_S */

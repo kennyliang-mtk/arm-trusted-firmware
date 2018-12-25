@@ -3,16 +3,17 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef __PLAT_ARM_H__
-#define __PLAT_ARM_H__
+#ifndef PLAT_ARM_H
+#define PLAT_ARM_H
 
-#include <arm_xlat_tables.h>
 #include <bakery_lock.h>
 #include <cassert.h>
 #include <cpu_data.h>
 #include <stdint.h>
+#include <spinlock.h>
 #include <tzc_common.h>
 #include <utils_def.h>
+#include <xlat_tables_compat.h>
 
 /*******************************************************************************
  * Forward declarations
@@ -24,7 +25,7 @@ struct bl_params;
 typedef struct arm_tzc_regions_info {
 	unsigned long long base;
 	unsigned long long end;
-	tzc_region_attributes_t sec_attr;
+	unsigned int sec_attr;
 	unsigned int nsaid_permissions;
 } arm_tzc_regions_info_t;
 
@@ -36,7 +37,7 @@ typedef struct arm_tzc_regions_info {
  *   - Region 1 with secure access only;
  *   - the remaining DRAM regions access from the given Non-Secure masters.
  ******************************************************************************/
-#if ENABLE_SPM
+#if ENABLE_SPM && SPM_DEPRECATED
 #define ARM_TZC_REGIONS_DEF						\
 	{ARM_AP_TZC_DRAM1_BASE, ARM_EL3_TZC_DRAM1_END,			\
 		TZC_REGION_S_RDWR, 0},					\
@@ -65,12 +66,6 @@ typedef struct arm_tzc_regions_info {
 		<= MAX_MMAP_REGIONS,					  \
 		assert_max_mmap_regions);
 
-/*
- * Utility functions common to ARM standard platforms
- */
-void arm_setup_page_tables(const mmap_region_t bl_regions[],
-			   const mmap_region_t plat_regions[]);
-
 void arm_setup_romlib(void);
 
 #if defined(IMAGE_BL31) || (defined(AARCH32) && defined(IMAGE_BL32))
@@ -80,6 +75,14 @@ void arm_setup_romlib(void);
  */
 #define ARM_INSTANTIATE_LOCK	static DEFINE_BAKERY_LOCK(arm_lock)
 #define ARM_LOCK_GET_INSTANCE	(&arm_lock)
+
+#if !HW_ASSISTED_COHERENCY
+#define ARM_SCMI_INSTANTIATE_LOCK	DEFINE_BAKERY_LOCK(arm_scmi_lock)
+#else
+#define ARM_SCMI_INSTANTIATE_LOCK	spinlock_t arm_scmi_lock
+#endif
+#define ARM_SCMI_LOCK_GET_INSTANCE	(&arm_scmi_lock)
+
 /*
  * These are wrapper macros to the Coherent Memory Bakery Lock API.
  */
@@ -289,4 +292,4 @@ extern plat_psci_ops_t plat_arm_psci_pm_ops;
 extern const mmap_region_t plat_arm_mmap[];
 extern const unsigned int arm_pm_idle_states[];
 
-#endif /* __PLAT_ARM_H__ */
+#endif /* PLAT_ARM_H */

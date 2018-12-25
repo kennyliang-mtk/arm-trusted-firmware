@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017, ARM Limited and Contributors. All rights reserved.
+# Copyright (c) 2017-2018, ARM Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -46,14 +46,13 @@ ERRATA_A53_855873		:= 1
 ERRATA_A53_835769		:= 1
 ERRATA_A53_843419		:= 1
 ENABLE_SVE_FOR_NS		:= 0
-
+MULTI_CONSOLE_API		:= 1
 WORKAROUND_CVE_2017_5715	:= 0
 
 PLAT_PL061_MAX_GPIOS 		:= 104
 $(eval $(call add_define,PLAT_PL061_MAX_GPIOS))
 
 PLAT_INCLUDES	:=	-Iplat/hisilicon/poplar/include		\
-			-Iinclude/plat/arm/common/		\
 			-Iplat/hisilicon/poplar			\
 			-Iinclude/common/tbbr			\
 			-Iinclude/drivers/synopsys		\
@@ -68,10 +67,10 @@ PLAT_BL_COMMON_SOURCES	:=						\
 		drivers/delay_timer/delay_timer.c			\
 		drivers/arm/pl011/aarch64/pl011_console.S		\
 		drivers/arm/gic/v2/gicv2_main.c				\
-		plat/arm/common/aarch64/arm_helpers.S			\
-		plat/arm/common/arm_gicv2.c				\
 		plat/common/plat_gicv2.c				\
-		plat/hisilicon/poplar/aarch64/platform_common.c
+		plat/hisilicon/poplar/aarch64/platform_common.c		\
+		plat/hisilicon/poplar/aarch64/poplar_helpers.S		\
+		plat/hisilicon/poplar/poplar_gicv2.c
 
 BL1_SOURCES	+=							\
 		lib/cpus/aarch64/cortex_a53.S				\

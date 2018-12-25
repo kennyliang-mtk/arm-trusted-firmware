@@ -7,7 +7,6 @@
 #include <arm_config.h>
 #include <arm_def.h>
 #include <arm_spm_def.h>
-#include <arm_xlat_tables.h>
 #include <assert.h>
 #include <cci.h>
 #include <ccn.h>
@@ -18,6 +17,8 @@
 #include <platform.h>
 #include <secure_partition.h>
 #include <v2m_def.h>
+#include <xlat_tables_compat.h>
+
 #include "../fvp_def.h"
 #include "fvp_private.h"
 
@@ -52,8 +53,8 @@ arm_config_t arm_config;
 
 /*
  * Table of memory regions for various BL stages to map using the MMU.
- * This doesn't include Trusted SRAM as arm_setup_page_tables() already
- * takes care of mapping it.
+ * This doesn't include Trusted SRAM as setup_page_tables() already takes care
+ * of mapping it.
  *
  * The flash needs to be mapped as writable in order to erase the FIP's Table of
  * Contents in case of unrecoverable error (see plat_error_handler()).
@@ -95,8 +96,11 @@ const mmap_region_t plat_arm_mmap[] = {
 	ARM_MAP_BL1_RW,
 #endif
 #endif /* TRUSTED_BOARD_BOOT */
-#if ENABLE_SPM
+#if ENABLE_SPM && SPM_DEPRECATED
 	ARM_SP_IMAGE_MMAP,
+#endif
+#if ENABLE_SPM && !SPM_DEPRECATED
+	PLAT_MAP_SP_PACKAGE_MEM_RW,
 #endif
 #if ARM_BL31_IN_DRAM
 	ARM_MAP_BL31_SEC_DRAM,
@@ -123,13 +127,16 @@ const mmap_region_t plat_arm_mmap[] = {
 	MAP_DEVICE0,
 	MAP_DEVICE1,
 	ARM_V2M_MAP_MEM_PROTECT,
-#if ENABLE_SPM
+#if ENABLE_SPM && SPM_DEPRECATED
 	ARM_SPM_BUF_EL3_MMAP,
+#endif
+#if ENABLE_SPM && !SPM_DEPRECATED
+	PLAT_MAP_SP_PACKAGE_MEM_RO,
 #endif
 	{0}
 };
 
-#if ENABLE_SPM && defined(IMAGE_BL31)
+#if ENABLE_SPM && defined(IMAGE_BL31) && SPM_DEPRECATED
 const mmap_region_t plat_arm_secure_partition_mmap[] = {
 	V2M_MAP_IOFPGA_EL0, /* for the UART */
 	MAP_REGION_FLAT(DEVICE0_BASE,				\
@@ -175,7 +182,7 @@ static unsigned int get_interconnect_master(void)
 	u_register_t mpidr;
 
 	mpidr = read_mpidr_el1();
-	master = (arm_config.flags & ARM_CONFIG_FVP_SHIFTED_AFF) ?
+	master = ((arm_config.flags & ARM_CONFIG_FVP_SHIFTED_AFF) != 0U) ?
 		MPIDR_AFFLVL2_VAL(mpidr) : MPIDR_AFFLVL1_VAL(mpidr);
 
 	assert(master < FVP_CLUSTER_COUNT);
@@ -183,7 +190,7 @@ static unsigned int get_interconnect_master(void)
 }
 #endif
 
-#if ENABLE_SPM && defined(IMAGE_BL31)
+#if ENABLE_SPM && defined(IMAGE_BL31) && SPM_DEPRECATED
 /*
  * Boot information passed to a secure partition during initialisation. Linear
  * indices in MP information will be filled at runtime.
@@ -231,7 +238,6 @@ const struct secure_partition_boot_info *plat_get_secure_partition_boot_info(
 {
 	return &plat_arm_secure_partition_boot_info;
 }
-
 #endif
 
 /*******************************************************************************
@@ -326,7 +332,7 @@ void __init fvp_config_setup(void)
 	 * affinities, is uniform across the platform: either all CPUs, or no
 	 * CPUs implement it.
 	 */
-	if (read_mpidr_el1() & MPIDR_MT_MASK)
+	if ((read_mpidr_el1() & MPIDR_MT_MASK) != 0U)
 		arm_config.flags |= ARM_CONFIG_FVP_SHIFTED_AFF;
 }
 
@@ -335,35 +341,31 @@ void __init fvp_interconnect_init(void)
 {
 #if FVP_INTERCONNECT_DRIVER == FVP_CCN
 	if (ccn_get_part0_id(PLAT_ARM_CCN_BASE) != CCN_502_PART0_ID) {
-		ERROR("Unrecognized CCN variant detected. Only CCN-502"
-				" is supported");
+		ERROR("Unrecognized CCN variant detected. Only CCN-502 is supported");
 		panic();
 	}
 
 	plat_arm_interconnect_init();
 #else
-	uintptr_t cci_base = 0;
-	const int *cci_map = 0;
-	unsigned int map_size = 0;
-
-	if (!(arm_config.flags & (ARM_CONFIG_FVP_HAS_CCI400 |
-				ARM_CONFIG_FVP_HAS_CCI5XX))) {
-		return;
-	}
+	uintptr_t cci_base = 0U;
+	const int *cci_map = NULL;
+	unsigned int map_size = 0U;
 
 	/* Initialize the right interconnect */
-	if (arm_config.flags & ARM_CONFIG_FVP_HAS_CCI5XX) {
+	if ((arm_config.flags & ARM_CONFIG_FVP_HAS_CCI5XX) != 0U) {
 		cci_base = PLAT_FVP_CCI5XX_BASE;
 		cci_map = fvp_cci5xx_map;
 		map_size = ARRAY_SIZE(fvp_cci5xx_map);
-	} else if (arm_config.flags & ARM_CONFIG_FVP_HAS_CCI400) {
+	} else if ((arm_config.flags & ARM_CONFIG_FVP_HAS_CCI400) != 0U) {
 		cci_base = PLAT_FVP_CCI400_BASE;
 		cci_map = fvp_cci400_map;
 		map_size = ARRAY_SIZE(fvp_cci400_map);
+	} else {
+		return;
 	}
 
-	assert(cci_base);
-	assert(cci_map);
+	assert(cci_base != 0U);
+	assert(cci_map != NULL);
 	cci_init(cci_base, cci_map, map_size);
 #endif
 }
@@ -375,8 +377,8 @@ void fvp_interconnect_enable(void)
 #else
 	unsigned int master;
 
-	if (arm_config.flags & (ARM_CONFIG_FVP_HAS_CCI400 |
-				ARM_CONFIG_FVP_HAS_CCI5XX)) {
+	if ((arm_config.flags & (ARM_CONFIG_FVP_HAS_CCI400 |
+				 ARM_CONFIG_FVP_HAS_CCI5XX)) != 0U) {
 		master = get_interconnect_master();
 		cci_enable_snoop_dvm_reqs(master);
 	}
@@ -390,8 +392,8 @@ void fvp_interconnect_disable(void)
 #else
 	unsigned int master;
 
-	if (arm_config.flags & (ARM_CONFIG_FVP_HAS_CCI400 |
-				ARM_CONFIG_FVP_HAS_CCI5XX)) {
+	if ((arm_config.flags & (ARM_CONFIG_FVP_HAS_CCI400 |
+				 ARM_CONFIG_FVP_HAS_CCI5XX)) != 0U) {
 		master = get_interconnect_master();
 		cci_disable_snoop_dvm_reqs(master);
 	}

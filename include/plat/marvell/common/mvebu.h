@@ -5,8 +5,8 @@
  * https://spdx.org/licenses
  */
 
-#ifndef _MVEBU_H_
-#define _MVEBU_H_
+#ifndef MVEBU_H
+#define MVEBU_H
 
 /* Use this functions only when printf is allowed */
 #define debug_enter()	VERBOSE("----> Enter %s\n", __func__)
@@ -32,7 +32,8 @@
 #define ROUND_UP_TO_POW_OF_2(number)	(1 << \
 					(32 - __builtin_clz((number) - 1)))
 
-#define _1MB_				(1024ULL*1024ULL)
-#define _1GB_				(_1MB_*1024ULL)
+#define _1MB_				(1024ULL * 1024ULL)
+#define _1GB_				(_1MB_ * 1024ULL)
+#define _2GB_				(2 * _1GB_)
 
-#endif	/* MVEBU_H */
+#endif /* MVEBU_H */

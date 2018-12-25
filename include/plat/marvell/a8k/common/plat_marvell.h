@@ -5,8 +5,8 @@
  * https://spdx.org/licenses
  */
 
-#ifndef __PLAT_MARVELL_H__
-#define __PLAT_MARVELL_H__
+#ifndef PLAT_MARVELL_H
+#define PLAT_MARVELL_H
 
 #include <cassert.h>
 #include <cpu_data.h>
@@ -47,6 +47,12 @@ void marvell_setup_page_tables(uintptr_t total_base,
 			       uintptr_t coh_limit
 #endif
 );
+
+/* Console utility functions */
+void marvell_console_boot_init(void);
+void marvell_console_boot_end(void);
+void marvell_console_runtime_init(void);
+void marvell_console_runtime_end(void);
 
 /* IO storage utility functions */
 void marvell_io_setup(void);
@@ -127,4 +133,4 @@ void marvell_exit_bootrom(uintptr_t base);
 int plat_marvell_early_cpu_powerdown(void);
 int bl2_plat_handle_scp_bl2(image_info_t *scp_bl2_image_info);
 
-#endif /* __PLAT_MARVELL_H__ */
+#endif /* PLAT_MARVELL_H */

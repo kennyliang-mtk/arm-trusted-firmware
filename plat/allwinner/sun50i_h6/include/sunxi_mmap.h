@@ -4,14 +4,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __SUNXI_MMAP_H__
-#define __SUNXI_MMAP_H__
+#ifndef SUNXI_MMAP_H
+#define SUNXI_MMAP_H
 
 /* Memory regions */
 #define SUNXI_ROM_BASE			0x00000000
 #define SUNXI_ROM_SIZE			0x00010000
 #define SUNXI_SRAM_BASE			0x00020000
-#define SUNXI_SRAM_SIZE			0x00098000
+#define SUNXI_SRAM_SIZE			0x000f8000
 #define SUNXI_SRAM_A1_BASE		0x00020000
 #define SUNXI_SRAM_A1_SIZE		0x00008000
 #define SUNXI_SRAM_A2_BASE		0x00104000
@@ -21,7 +21,7 @@
 #define SUNXI_DEV_BASE			0x01000000
 #define SUNXI_DEV_SIZE			0x09000000
 #define SUNXI_DRAM_BASE			0x40000000
-#define SUNXI_DRAM_SIZE			0xc0000000
+#define SUNXI_DRAM_VIRT_BASE		0x0a000000
 
 /* Memory-mapped devices */
 #define SUNXI_SYSCON_BASE		0x03000000
@@ -58,4 +58,4 @@
 #define SUNXI_R_UART_BASE		0x07080000
 #define SUNXI_R_PIO_BASE		0x07022000
 
-#endif /* __SUNXI_MMAP_H__ */
+#endif /* SUNXI_MMAP_H */

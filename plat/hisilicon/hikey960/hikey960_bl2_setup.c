@@ -7,7 +7,6 @@
 #include <arch_helpers.h>
 #include <assert.h>
 #include <bl_common.h>
-#include <console.h>
 #include <debug.h>
 #include <delay_timer.h>
 #include <desc_image_load.h>
@@ -19,6 +18,7 @@
 #ifdef SPD_opteed
 #include <optee_utils.h>
 #endif
+#include <pl011.h>
 #include <platform_def.h>
 #include <string.h>
 #include <ufs.h>
@@ -48,6 +48,7 @@
 #define BL2_COHERENT_RAM_LIMIT (unsigned long)(&__COHERENT_RAM_END__)
 
 static meminfo_t bl2_el3_tzram_layout;
+static console_pl011_t console;
 extern int load_lpm3(void);
 
 enum {
@@ -191,7 +192,7 @@ uint32_t hikey960_get_spsr_for_bl33_entry(void)
 	uint32_t spsr;
 
 	/* Figure out what mode we enter the non-secure world in */
-	mode = EL_IMPLEMENTED(2) ? MODE_EL2 : MODE_EL1;
+	mode = (el_implemented(2) != EL_IMPL_NONE) ? MODE_EL2 : MODE_EL1;
 
 	/*
 	 * TODO: Consider the possibility of specifying the SPSR in
@@ -296,7 +297,8 @@ void bl2_el3_early_platform_setup(u_register_t arg1, u_register_t arg2,
 	else
 		uart_base = PL011_UART6_BASE;
 	/* Initialize the console to provide early debug support */
-	console_init(uart_base, PL011_UART_CLK_IN_HZ, PL011_BAUDRATE);
+	console_pl011_register(uart_base, PL011_UART_CLK_IN_HZ,
+			       PL011_BAUDRATE, &console);
 	/*
 	 * Allow BL2 to see the whole Trusted RAM.
 	 */

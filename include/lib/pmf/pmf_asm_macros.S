@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __PMF_ASM_MACROS_S__
-#define __PMF_ASM_MACROS_S__
+#ifndef PMF_ASM_MACROS_S
+#define PMF_ASM_MACROS_S
 
 #define PMF_TS_SIZE	8
 
@@ -18,11 +18,13 @@
 	mov	x9, x30
 	bl	plat_my_core_pos
 	mov	x30, x9
-	ldr	x1, =__PERCPU_TIMESTAMP_SIZE__
+	adr	x2, __PMF_PERCPU_TIMESTAMP_END__
+	adr	x1, __PMF_TIMESTAMP_START__
+	sub	x1, x2, x1
 	mov	x2, #(\_tid * PMF_TS_SIZE)
 	madd	x0, x0, x1, x2
-	ldr	x1, =pmf_ts_mem_\_name
+	adr	x1, pmf_ts_mem_\_name
 	add	x0, x0, x1
 	.endm
 
-#endif /* __PMF_ASM_MACROS_S__ */
+#endif /* PMF_ASM_MACROS_S */

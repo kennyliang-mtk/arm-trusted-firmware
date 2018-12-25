@@ -4,9 +4,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __STM32MP1_CLKFUNC_H__
-#define __STM32MP1_CLKFUNC_H__
+#ifndef STM32MP1_CLKFUNC_H
+#define STM32MP1_CLKFUNC_H
 
+#include <libfdt.h>
 #include <stdbool.h>
 
 enum stm32mp_osc_id {
@@ -33,10 +34,10 @@ uint32_t fdt_rcc_read_addr(void);
 int fdt_rcc_read_uint32_array(const char *prop_name,
 			      uint32_t *array, uint32_t count);
 int fdt_rcc_subnode_offset(const char *name);
-const uint32_t *fdt_rcc_read_prop(const char *prop_name, int *lenp);
+const fdt32_t *fdt_rcc_read_prop(const char *prop_name, int *lenp);
 bool fdt_get_rcc_secure_status(void);
 
 uintptr_t fdt_get_stgen_base(void);
 int fdt_get_clock_id(int node);
 
-#endif /* __STM32MP1_CLKFUNC_H__ */
+#endif /* STM32MP1_CLKFUNC_H */

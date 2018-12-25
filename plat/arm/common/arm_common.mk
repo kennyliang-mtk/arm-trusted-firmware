@@ -86,11 +86,14 @@ $(eval $(call assert_boolean,ARM_LINUX_KERNEL_AS_BL33))
 $(eval $(call add_define,ARM_LINUX_KERNEL_AS_BL33))
 
 ifeq (${ARM_LINUX_KERNEL_AS_BL33},1)
-  ifneq (${ARCH},aarch64)
-    $(error "ARM_LINUX_KERNEL_AS_BL33 is only available in AArch64.")
-  endif
-  ifneq (${RESET_TO_BL31},1)
-    $(error "ARM_LINUX_KERNEL_AS_BL33 is only available if RESET_TO_BL31=1.")
+  ifeq (${ARCH},aarch64)
+    ifneq (${RESET_TO_BL31},1)
+      $(error "ARM_LINUX_KERNEL_AS_BL33 is only available if RESET_TO_BL31=1.")
+    endif
+  else
+    ifneq (${RESET_TO_SP_MIN},1)
+      $(error "ARM_LINUX_KERNEL_AS_BL33 is only available if RESET_TO_SP_MIN=1.")
+    endif
   endif
   ifndef PRELOADED_BL33_BASE
     $(error "PRELOADED_BL33_BASE must be set if ARM_LINUX_KERNEL_AS_BL33 is used.")
@@ -129,6 +132,11 @@ MULTI_CONSOLE_API		:=	1
 ARM_CRYPTOCELL_INTEG		:=	0
 $(eval $(call assert_boolean,ARM_CRYPTOCELL_INTEG))
 $(eval $(call add_define,ARM_CRYPTOCELL_INTEG))
+
+# Enable PIE support for RESET_TO_BL31 case
+ifeq (${RESET_TO_BL31},1)
+    ENABLE_PIE			:=	1
+endif
 
 # CryptoCell integration relies on coherent buffers for passing data from
 # the AP CPU to the CryptoCell
@@ -234,6 +242,16 @@ endif
 ifeq (${RAS_EXTENSION},1)
 BL31_SOURCES		+=	lib/extensions/ras/std_err_record.c		\
 				lib/extensions/ras/ras_common.c
+endif
+
+# SPM uses libfdt in Arm platforms
+ifeq (${SPM_DEPRECATED},0)
+ifeq (${ENABLE_SPM},1)
+BL31_SOURCES		+=	common/fdt_wrappers.c			\
+				plat/common/plat_spm_rd.c		\
+				plat/common/plat_spm_sp.c		\
+				${LIBFDT_SRCS}
+endif
 endif
 
 ifneq (${TRUSTED_BOARD_BOOT},0)

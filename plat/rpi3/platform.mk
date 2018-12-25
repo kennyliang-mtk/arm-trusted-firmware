@@ -4,12 +4,15 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 
+include lib/libfdt/libfdt.mk
+include lib/xlat_tables_v2/xlat_tables.mk
+
 PLAT_INCLUDES		:=	-Iinclude/common/tbbr			\
 				-Iplat/rpi3/include
 
-PLAT_BL_COMMON_SOURCES	:=	drivers/console/aarch64/console.S	\
-				drivers/ti/uart/aarch64/16550_console.S	\
-				plat/rpi3/rpi3_common.c
+PLAT_BL_COMMON_SOURCES	:=	drivers/ti/uart/aarch64/16550_console.S	\
+				plat/rpi3/rpi3_common.c			\
+				${XLAT_TABLES_LIB_SRCS}
 
 BL1_SOURCES		+=	drivers/io/io_fip.c			\
 				drivers/io/io_memmap.c			\
@@ -37,12 +40,8 @@ BL31_SOURCES		+=	lib/cpus/aarch64/cortex_a53.S		\
 				plat/rpi3/aarch64/plat_helpers.S	\
 				plat/rpi3/rpi3_bl31_setup.c		\
 				plat/rpi3/rpi3_pm.c			\
-				plat/rpi3/rpi3_topology.c
-
-# Translation tables library
-include lib/xlat_tables_v2/xlat_tables.mk
-
-PLAT_BL_COMMON_SOURCES	+=	${XLAT_TABLES_LIB_SRCS}
+				plat/rpi3/rpi3_topology.c		\
+				${LIBFDT_SRCS}
 
 # Tune compiler for Cortex-A53
 ifeq ($(notdir $(CC)),armclang)
@@ -109,6 +108,13 @@ RPI3_BL33_IN_AARCH32		:= 0
 # Assume that BL33 isn't the Linux kernel by default
 RPI3_DIRECT_LINUX_BOOT		:= 0
 
+# UART to use at runtime. -1 means the runtime UART is disabled.
+# Any other value means the default UART will be used.
+RPI3_RUNTIME_UART		:= -1
+
+# Use normal memory mapping for ROM, FIP, SRAM and DRAM
+RPI3_USE_UEFI_MAP		:= 0
+
 # BL32 location
 RPI3_BL32_RAM_LOCATION	:= tdram
 ifeq (${RPI3_BL32_RAM_LOCATION}, tsram)
@@ -126,6 +132,8 @@ $(eval $(call add_define,RPI3_BL32_RAM_LOCATION_ID))
 $(eval $(call add_define,RPI3_BL33_IN_AARCH32))
 $(eval $(call add_define,RPI3_DIRECT_LINUX_BOOT))
 $(eval $(call add_define,RPI3_PRELOADED_DTB_BASE))
+$(eval $(call add_define,RPI3_RUNTIME_UART))
+$(eval $(call add_define,RPI3_USE_UEFI_MAP))
 
 # Verify build config
 # -------------------

@@ -4,10 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef _SOC_TZASC_H_
-#define _SOC_TZASC_H_
-
-#include "tzc380.h"
+#ifndef SOC_TZASC_H
+#define SOC_TZASC_H
 
 #define MAX_NUM_TZC_REGION	3
 
@@ -58,6 +56,15 @@
 #define CCI_TERMINATE_BARRIER_TX	0x8
 #define CONFIG_SYS_FSL_TZASC_ADDR	0x1500000
 
+struct tzc380_reg {
+	unsigned int secure;
+	unsigned int enabled;
+	unsigned int low_addr;
+	unsigned int high_addr;
+	unsigned int size;
+	unsigned int sub_mask;
+};
+
 /* List of MAX_NUM_TZC_REGION TZC regions' boundaries and configurations. */
 
 static const struct tzc380_reg tzc380_reg_list[] = {
@@ -90,4 +97,4 @@ static const struct tzc380_reg tzc380_reg_list[] = {
 	{}
 };
 
-#endif /* _SOC_TZASC_H_ */
+#endif /* SOC_TZASC_H */

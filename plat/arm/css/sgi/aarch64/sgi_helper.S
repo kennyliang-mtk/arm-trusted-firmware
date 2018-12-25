@@ -8,6 +8,8 @@
 #include <asm_macros.S>
 #include <platform_def.h>
 #include <cortex_a75.h>
+#include <cortex_ares.h>
+#include <cpu_macros.S>
 
 	.globl	plat_arm_calc_core_pos
 	.globl	plat_reset_handler
@@ -48,21 +50,6 @@ func plat_arm_calc_core_pos
 	ret
 endfunc plat_arm_calc_core_pos
 
-	/* ------------------------------------------------------
-	 * Helper macro that reads the part number of the current
-	 * CPU and jumps to the given label if it matches the CPU
-	 * MIDR provided.
-	 *
-	 * Clobbers x0.
-	 * -----------------------------------------------------
-	 */
-	.macro  jump_if_cpu_midr _cpu_midr, _label
-	mrs	x0, midr_el1
-	ubfx	x0, x0, MIDR_PN_SHIFT, #12
-	cmp	w0, #((\_cpu_midr >> MIDR_PN_SHIFT) & MIDR_PN_MASK)
-	b.eq	\_label
-	.endm
-
 	/* -----------------------------------------------------
 	 * void plat_reset_handler(void);
 	 *
@@ -72,6 +59,7 @@ endfunc plat_arm_calc_core_pos
 	 */
 func plat_reset_handler
 	jump_if_cpu_midr CORTEX_A75_MIDR, A75
+	jump_if_cpu_midr CORTEX_ARES_MIDR, ARES
 	ret
 
 	/* -----------------------------------------------------
@@ -82,6 +70,13 @@ A75:
 	mrs	x0, CORTEX_A75_CPUPWRCTLR_EL1
 	bic	x0, x0, #CORTEX_A75_CORE_PWRDN_EN_MASK
 	msr	CORTEX_A75_CPUPWRCTLR_EL1, x0
+	isb
+	ret
+
+ARES:
+	mrs	x0, CORTEX_ARES_CPUPWRCTLR_EL1
+	bic	x0, x0, #CORTEX_ARES_CORE_PWRDN_EN_MASK
+	msr	CORTEX_ARES_CPUPWRCTLR_EL1, x0
 	isb
 	ret
 endfunc plat_reset_handler

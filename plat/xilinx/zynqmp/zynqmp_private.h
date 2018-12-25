@@ -1,16 +1,19 @@
 /*
- * Copyright (c) 2014-2016, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2014-2018, ARM Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef __ZYNQMP_PRIVATE_H__
-#define __ZYNQMP_PRIVATE_H__
+#ifndef ZYNQMP_PRIVATE_H
+#define ZYNQMP_PRIVATE_H
 
 #include <bl_common.h>
 #include <interrupt_mgmt.h>
+#include <stdint.h>
 
 void zynqmp_config_setup(void);
+
+unsigned int zynqmp_calc_core_pos(u_register_t mpidr);
 
 /* ZynqMP specific functions */
 unsigned int zynqmp_get_uart_clk(void);
@@ -35,4 +38,4 @@ int request_intr_type_el3(uint32_t, interrupt_type_handler_t);
 enum fsbl_handoff fsbl_atf_handover(entry_point_info_t *bl32_image_ep_info,
 		       entry_point_info_t *bl33_image_ep_info);
 
-#endif /* __ZYNQMP_PRIVATE_H__ */
+#endif /* ZYNQMP_PRIVATE_H */

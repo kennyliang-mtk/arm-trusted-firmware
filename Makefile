@@ -78,12 +78,12 @@ ifeq (${V},0)
         CHECKCODE_ARGS	+=	--no-summary --terse
 else
         Q:=
-        ECHO:=@\#
+        ECHO:=$(ECHO_QUIET)
 endif
 
 ifneq ($(findstring s,$(filter-out --%,$(MAKEFLAGS))),)
         Q:=@
-        ECHO:=@\#
+        ECHO:=$(ECHO_QUIET)
 endif
 
 export Q ECHO
@@ -106,13 +106,6 @@ else
         BUILD_TYPE	:=	release
         # Use LOG_LEVEL_NOTICE by default for release builds
         LOG_LEVEL	:=	20
-endif
-
-# Enable backtrace by default in DEBUG AArch64 builds
-ifeq (${ARCH},aarch32)
-        ENABLE_BACKTRACE 	:=	0
-else
-        ENABLE_BACKTRACE 	:=	${DEBUG}
 endif
 
 # Default build string (git branch and commit)
@@ -161,7 +154,7 @@ target32-directive	= 	-target armv8a-none-eabi
 march32-directive	= 	-march=armv8-a
 endif
 
-ifeq ($(notdir $(CC)),armclang)
+ifneq ($(findstring armclang,$(notdir $(CC))),)
 TF_CFLAGS_aarch32	=	-target arm-arm-none-eabi $(march32-directive)
 TF_CFLAGS_aarch64	=	-target aarch64-arm-none-eabi -march=armv8-a
 LD			=	$(LINKER)
@@ -169,7 +162,7 @@ AS			=	$(CC) -c -x assembler-with-cpp $(TF_CFLAGS_$(ARCH))
 CPP			=	$(CC) -E $(TF_CFLAGS_$(ARCH))
 PP			=	$(CC) -E $(TF_CFLAGS_$(ARCH))
 else ifneq ($(findstring clang,$(notdir $(CC))),)
-TF_CFLAGS_aarch32	=	$(target32-directive)
+TF_CFLAGS_aarch32	=	$(target32-directive) $(march32-directive)
 TF_CFLAGS_aarch64	=	-target aarch64-elf
 LD			=	$(LINKER)
 AS			=	$(CC) -c -x assembler-with-cpp $(TF_CFLAGS_$(ARCH))
@@ -195,8 +188,50 @@ TF_CFLAGS_aarch64	+=	-mgeneral-regs-only -mstrict-align
 ASFLAGS_aarch32		=	$(march32-directive)
 ASFLAGS_aarch64		=	-march=armv8-a
 
+WARNING1 := -Wextra
+WARNING1 += -Wunused -Wno-unused-parameter
+WARNING1 += -Wmissing-declarations
+WARNING1 += -Wmissing-format-attribute
+WARNING1 += -Wmissing-prototypes
+WARNING1 += -Wold-style-definition
+WARNING1 += -Wunused-but-set-variable
+WARNING1 += -Wunused-const-variable
+
+WARNING2 := -Waggregate-return
+WARNING2 += -Wcast-align
+WARNING2 += -Wdisabled-optimization
+WARNING2 += -Wnested-externs
+WARNING2 += -Wshadow
+WARNING2 += -Wlogical-op
+WARNING2 += -Wmissing-field-initializers
+WARNING2 += -Wsign-compare
+WARNING2 += -Wmaybe-uninitialized
+
+WARNING3 := -Wbad-function-cast
+WARNING3 += -Wcast-qual
+WARNING3 += -Wconversion
+WARNING3 += -Wpacked
+WARNING3 += -Wpadded
+WARNING3 += -Wpointer-arith
+WARNING3 += -Wredundant-decls
+WARNING3 += -Wswitch-default
+WARNING3 += -Wpacked-bitfield-compat
+WARNING3 += -Wvla
+
+ifeq (${W},1)
+WARNINGS := $(WARNING1)
+else ifeq (${W},2)
+WARNINGS := $(WARNING1) $(WARNING2)
+else ifeq (${W},3)
+WARNINGS := $(WARNING1) $(WARNING2) $(WARNING3)
+endif
+
+ifneq (${E},0)
+ERRORS := -Werror
+endif
+
 CPPFLAGS		=	${DEFINES} ${INCLUDES} ${MBEDTLS_INC} -nostdinc		\
-				-Wmissing-include-dirs -Werror
+				-Wmissing-include-dirs $(ERRORS) $(WARNINGS)
 ASFLAGS			+=	$(CPPFLAGS) $(ASFLAGS_$(ARCH))			\
 				-D__ASSEMBLY__ -ffreestanding 			\
 				-Wa,--fatal-warnings
@@ -205,16 +240,6 @@ TF_CFLAGS		+=	$(CPPFLAGS) $(TF_CFLAGS_$(ARCH))		\
 				-Os -ffunction-sections -fdata-sections
 
 GCC_V_OUTPUT		:=	$(shell $(CC) -v 2>&1)
-PIE_FOUND		:=	$(findstring --enable-default-pie,${GCC_V_OUTPUT})
-
-ifneq ($(PIE_FOUND),)
-TF_CFLAGS		+=	-fno-PIE
-endif
-
-# Force the compiler to include the frame pointer
-ifeq (${ENABLE_BACKTRACE},1)
-TF_CFLAGS		+=	-fno-omit-frame-pointer
-endif
 
 TF_LDFLAGS		+=	--fatal-warnings -O1
 TF_LDFLAGS		+=	--gc-sections
@@ -231,6 +256,7 @@ include lib/libc/libc.mk
 BL_COMMON_SOURCES	+=	common/bl_common.c			\
 				common/tf_log.c				\
 				common/${ARCH}/debug.S			\
+				drivers/console/multi_console.c		\
 				lib/${ARCH}/cache_helpers.S		\
 				lib/${ARCH}/misc_helpers.S		\
 				plat/common/plat_bl_common.c		\
@@ -241,10 +267,6 @@ BL_COMMON_SOURCES	+=	common/bl_common.c			\
 
 ifeq ($(notdir $(CC)),armclang)
 BL_COMMON_SOURCES	+=	lib/${ARCH}/armclang_printf.S
-endif
-
-ifeq (${ENABLE_BACKTRACE},1)
-BL_COMMON_SOURCES	+=	common/backtrace.c
 endif
 
 INCLUDES		+=	-Iinclude				\
@@ -274,6 +296,8 @@ INCLUDES		+=	-Iinclude				\
 				${PLAT_INCLUDES}			\
 				${SPD_INCLUDES}				\
 				-Iinclude/tools_share
+
+include common/backtrace/backtrace.mk
 
 ################################################################################
 # Generic definitions
@@ -335,6 +359,16 @@ ifeq (${ARM_ARCH_MAJOR},7)
 include make_helpers/armv7-a-cpus.mk
 endif
 
+ifeq ($(ENABLE_PIE),1)
+    TF_CFLAGS		+=	-fpie
+    TF_LDFLAGS		+=	-pie
+else
+    PIE_FOUND		:=	$(findstring --enable-default-pie,${GCC_V_OUTPUT})
+    ifneq ($(PIE_FOUND),)
+        TF_CFLAGS		+=	-fno-PIE
+    endif
+endif
+
 # Include the CPU specific operations makefile, which provides default
 # values for all CPU errata workarounds and CPU specific optimisations.
 # This can be overridden by the platform.
@@ -363,15 +397,6 @@ endif
 ################################################################################
 # Check incompatible options
 ################################################################################
-
-ifeq (${ARCH},aarch32)
-        ifeq (${ENABLE_BACKTRACE},1)
-                ifneq (${AARCH32_INSTRUCTION_SET},A32)
-                        $(error Error: AARCH32_INSTRUCTION_SET=A32 is needed \
-                        for ENABLE_BACKTRACE when compiling for AArch32.)
-                endif
-        endif
-endif
 
 ifdef EL3_PAYLOAD_BASE
         ifdef PRELOADED_BL33_BASE
@@ -518,6 +543,10 @@ CRTTOOL			?=	${CRTTOOLPATH}/cert_create${BIN_EXT}
 FIPTOOLPATH		?=	tools/fiptool
 FIPTOOL			?=	${FIPTOOLPATH}/fiptool${BIN_EXT}
 
+# Variables for use with sptool
+SPTOOLPATH		?=	tools/sptool
+SPTOOL			?=	${SPTOOLPATH}/sptool${BIN_EXT}
+
 # Variables for use with ROMLIB
 ROMLIBPATH		?=	lib/romlib
 
@@ -563,8 +592,8 @@ $(eval $(call assert_boolean,DYN_DISABLE_AUTH))
 $(eval $(call assert_boolean,EL3_EXCEPTION_HANDLING))
 $(eval $(call assert_boolean,ENABLE_AMU))
 $(eval $(call assert_boolean,ENABLE_ASSERTIONS))
-$(eval $(call assert_boolean,ENABLE_BACKTRACE))
 $(eval $(call assert_boolean,ENABLE_MPAM_FOR_LOWER_ELS))
+$(eval $(call assert_boolean,ENABLE_PIE))
 $(eval $(call assert_boolean,ENABLE_PMF))
 $(eval $(call assert_boolean,ENABLE_PSCI_STAT))
 $(eval $(call assert_boolean,ENABLE_RUNTIME_INSTRUMENTATION))
@@ -587,6 +616,7 @@ $(eval $(call assert_boolean,RESET_TO_BL31))
 $(eval $(call assert_boolean,SAVE_KEYS))
 $(eval $(call assert_boolean,SEPARATE_CODE_AND_RODATA))
 $(eval $(call assert_boolean,SPIN_ON_BL1_EXIT))
+$(eval $(call assert_boolean,SPM_DEPRECATED))
 $(eval $(call assert_boolean,TRUSTED_BOARD_BOOT))
 $(eval $(call assert_boolean,USE_COHERENT_MEM))
 $(eval $(call assert_boolean,USE_ROMLIB))
@@ -613,8 +643,8 @@ $(eval $(call add_define,CTX_INCLUDE_FPREGS))
 $(eval $(call add_define,EL3_EXCEPTION_HANDLING))
 $(eval $(call add_define,ENABLE_AMU))
 $(eval $(call add_define,ENABLE_ASSERTIONS))
-$(eval $(call add_define,ENABLE_BACKTRACE))
 $(eval $(call add_define,ENABLE_MPAM_FOR_LOWER_ELS))
+$(eval $(call add_define,ENABLE_PIE))
 $(eval $(call add_define,ENABLE_PMF))
 $(eval $(call add_define,ENABLE_PSCI_STAT))
 $(eval $(call add_define,ENABLE_RUNTIME_INSTRUMENTATION))
@@ -640,6 +670,7 @@ $(eval $(call add_define,RECLAIM_INIT_CODE))
 $(eval $(call add_define,SMCCC_MAJOR_VERSION))
 $(eval $(call add_define,SPD_${SPD}))
 $(eval $(call add_define,SPIN_ON_BL1_EXIT))
+$(eval $(call add_define,SPM_DEPRECATED))
 $(eval $(call add_define,TRUSTED_BOARD_BOOT))
 $(eval $(call add_define,USE_COHERENT_MEM))
 $(eval $(call add_define,USE_ROMLIB))
@@ -674,7 +705,7 @@ endif
 # Build targets
 ################################################################################
 
-.PHONY:	all msg_start clean realclean distclean cscope locate-checkpatch checkcodebase checkpatch fiptool fip fwu_fip certtool dtbs
+.PHONY:	all msg_start clean realclean distclean cscope locate-checkpatch checkcodebase checkpatch fiptool sptool fip fwu_fip certtool dtbs
 .SUFFIXES:
 
 all: msg_start
@@ -761,6 +792,7 @@ realclean distclean:
 	$(call SHELL_REMOVE_DIR,${BUILD_BASE})
 	$(call SHELL_DELETE_ALL, ${CURDIR}/cscope.*)
 	${Q}${MAKE} --no-print-directory -C ${FIPTOOLPATH} clean
+	${Q}${MAKE} --no-print-directory -C ${SPTOOLPATH} clean
 	${Q}${MAKE} PLAT=${PLAT} --no-print-directory -C ${CRTTOOLPATH} clean
 	${Q}${MAKE} --no-print-directory -C ${ROMLIBPATH} clean
 
@@ -841,9 +873,14 @@ fwu_fip: ${BUILD_PLAT}/${FWU_FIP_NAME}
 ${FIPTOOL}:
 	${Q}${MAKE} CPPFLAGS="-DVERSION='\"${VERSION_STRING}\"'" --no-print-directory -C ${FIPTOOLPATH}
 
+sptool: ${SPTOOL}
+.PHONY: ${SPTOOL}
+${SPTOOL}:
+	${Q}${MAKE} CPPFLAGS="-DVERSION='\"${VERSION_STRING}\"'" --no-print-directory -C ${SPTOOLPATH}
+
 .PHONY: libraries
 romlib.bin: libraries
-	${Q}${MAKE} BUILD_PLAT=${BUILD_PLAT} INCLUDES='${INCLUDES}' DEFINES='${DEFINES}' --no-print-directory -C ${ROMLIBPATH} all
+	${Q}${MAKE} PLAT_DIR=${PLAT_DIR} BUILD_PLAT=${BUILD_PLAT} INCLUDES='${INCLUDES}' DEFINES='${DEFINES}' --no-print-directory -C ${ROMLIBPATH} all
 
 cscope:
 	@echo "  CSCOPE"
@@ -880,6 +917,7 @@ help:
 	@echo "  distclean      Remove all build artifacts for all platforms"
 	@echo "  certtool       Build the Certificate generation tool"
 	@echo "  fiptool        Build the Firmware Image Package (FIP) creation tool"
+	@echo "  sptool         Build the Secure Partition Package creation tool"
 	@echo "  dtbs           Build the Device Tree Blobs (if required for the platform)"
 	@echo ""
 	@echo "Note: most build targets require PLAT to be set to a specific platform."

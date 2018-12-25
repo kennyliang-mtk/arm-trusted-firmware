@@ -19,7 +19,6 @@
 #include <plat_marvell.h>
 #include <platform.h>
 #include <plat_pm_trace.h>
-#include <platform.h>
 
 #define MVEBU_PRIVATE_UID_REG		0x30
 #define MVEBU_RFU_GLOBL_SW_RST		0x84
@@ -80,7 +79,7 @@ enum CPU_ID {
 	#define PWRC_CPUN_CR_PWR_DN_RQ_OFFSET		1
 	#define PWRC_CPUN_CR_LDO_BYPASS_RDY_OFFSET	0
 #else
-#define PWRC_CPUN_CR_PWR_DN_RQ_OFFSET		0
+	#define PWRC_CPUN_CR_PWR_DN_RQ_OFFSET		0
 	#define PWRC_CPUN_CR_LDO_BYPASS_RDY_OFFSET	31
 #endif
 
@@ -107,7 +106,7 @@ enum CPU_ID {
 #define AP807_PWRC_LDO_CR0_OFFSET		16
 #define AP807_PWRC_LDO_CR0_MASK			\
 			(0xff << AP807_PWRC_LDO_CR0_OFFSET)
-#define AP807_PWRC_LDO_CR0_VAL			0xfd
+#define AP807_PWRC_LDO_CR0_VAL			0xfc
 
 /*
  * Power down CPU:
@@ -614,6 +613,8 @@ static void a8k_pwr_domain_suspend(const psci_power_state_t *target_state)
 
 		INFO("Suspending to RAM\n");
 
+		marvell_console_runtime_end();
+
 		/* Prevent interrupts from spuriously waking up this cpu */
 		gicv2_cpuif_disable();
 
@@ -687,9 +688,7 @@ static void a8k_pwr_domain_suspend_finish(
 			/* Initialize the console to provide
 			 * early debug support
 			 */
-			console_init(PLAT_MARVELL_BOOT_UART_BASE,
-			PLAT_MARVELL_BOOT_UART_CLK_IN_HZ,
-			MARVELL_CONSOLE_BAUDRATE);
+			marvell_console_runtime_init();
 
 			bl31_plat_arch_setup();
 			marvell_bl31_platform_setup();

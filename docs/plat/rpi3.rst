@@ -133,9 +133,12 @@ secure platform!
     0x40000000 +-----------------+
 
 The area between **0x10000000** and **0x11000000** has to be manually protected
-so that the kernel doesn't use it. That is done by adding ``memmap=16M$256M`` to
-the command line passed to the kernel. See the `Setup SD card`_ instructions to
-see how to do it.
+so that the kernel doesn't use it. The current port tries to modify the live DTB
+to add a memreserve region that reserves the previously mentioned area.
+
+If this is not possible, the user may manually add ``memmap=16M$256M`` to the
+command line passed to the kernel in ``cmdline.txt``. See the `Setup SD card`_
+instructions to see how to do it. This system is strongly discouraged.
 
 The last 16 MiB of DRAM can only be accessed by the VideoCore, that has
 different mappings than the Arm cores in which the I/O addresses don't overlap
@@ -227,6 +230,44 @@ The following build options are supported:
 - ``RPI3_PRELOADED_DTB_BASE``: Auxiliary build option needed when using
   ``RPI3_DIRECT_LINUX_BOOT=1``. This option allows to specify the location of a
   DTB in memory.
+
+- ``RPI3_RUNTIME_UART``: Indicates whether the UART should be used at runtime
+  or disabled. ``-1`` (default) disables the runtime UART. Any other value
+  enables the default UART (currently UART1) for runtime messages.
+
+- ``RPI3_USE_UEFI_MAP``: Set to 1 to build ATF with the altername memory
+  mapping required for an UEFI firmware payload. These changes are needed
+  to be able to run Windows on ARM64. This option, which is disabled by
+  default, results in the following memory mappings:
+
+::
+
+    0x00000000 +-----------------+
+               |       ROM       | BL1
+    0x00010000 +-----------------+
+               |       DTB       | (Loaded by the VideoCore)
+    0x00020000 +-----------------+
+               |       FIP       |
+    0x00030000 +-----------------+
+               |                 |
+               |  UEFI PAYLOAD   |
+               |                 |
+    0x00200000 +-----------------+
+               |   Secure SRAM   | BL2, BL31
+    0x00300000 +-----------------+
+               |   Secure DRAM   | BL32 (Secure payload)
+    0x00400000 +-----------------+
+               |                 |
+               |                 |
+               | Non-secure DRAM | BL33
+               |                 |
+               |                 |
+    0x01000000 +-----------------+
+               |                 |
+               |       ...       |
+               |                 |
+    0x3F000000 +-----------------+
+               |       I/O       |
 
 - ``BL32``: This port can load and run OP-TEE. The OP-TEE image is optional.
   Please use the code from `here <https://github.com/OP-TEE/optee_os>`__.
@@ -384,13 +425,8 @@ untouched). They have been tested with the image available in 2018-03-13.
    bootloader will look for a file called ``armstub8.bin`` and load it at
    address **0x0** instead of a predefined one.
 
-4. Open ``cmdline.txt`` and add ``memmap=16M$256M`` to prevent the kernel from
-   using the memory needed by TF-A. If you want to enable the serial port
-   "Mini UART", make sure that this file also contains
+4. To enable the serial port "Mini UART" in Linux, open ``cmdline.txt`` and add
    ``console=serial0,115200 console=tty1``.
-
-   Note that the 16 MiB reserved this way won't be available for Linux, the same
-   way as the memory reserved in DRAM for the GPU isn't available.
 
 5. Open ``config.txt`` and add the following lines at the end (``enable_uart=1``
    is only needed to enable debugging through the Mini UART):

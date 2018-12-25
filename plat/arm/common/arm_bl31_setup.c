@@ -16,7 +16,7 @@
 #include <platform.h>
 #include <ras.h>
 #include <utils.h>
-#include <arm_xlat_tables.h>
+#include <xlat_tables_compat.h>
 
 /*
  * Placeholder variables for copying the arguments that have been passed to
@@ -25,11 +25,13 @@
 static entry_point_info_t bl32_image_ep_info;
 static entry_point_info_t bl33_image_ep_info;
 
+#if !RESET_TO_BL31
 /*
  * Check that BL31_BASE is above ARM_TB_FW_CONFIG_LIMIT. The reserved page
  * is required for SOC_FW_CONFIG/TOS_FW_CONFIG passed from BL2.
  */
 CASSERT(BL31_BASE >= ARM_TB_FW_CONFIG_LIMIT, assert_bl31_base_overflows);
+#endif
 
 /* Weak definitions may be overridden in specific ARM standard platform */
 #pragma weak bl31_early_platform_setup2
@@ -38,8 +40,8 @@ CASSERT(BL31_BASE >= ARM_TB_FW_CONFIG_LIMIT, assert_bl31_base_overflows);
 #pragma weak bl31_plat_get_next_image_ep_info
 
 #define MAP_BL31_TOTAL		MAP_REGION_FLAT(			\
-					BL31_BASE,			\
-					BL31_END - BL31_BASE,		\
+					BL31_START,			\
+					BL31_END - BL31_START,		\
 					MT_MEMORY | MT_RW | MT_SECURE)
 #if RECLAIM_INIT_CODE
 IMPORT_SYM(unsigned long, __INIT_CODE_START__, BL_INIT_CODE_BASE);
@@ -302,7 +304,7 @@ void __init arm_bl31_plat_arch_setup(void)
 		{0}
 	};
 
-	arm_setup_page_tables(bl_regions, plat_arm_get_mmap());
+	setup_page_tables(bl_regions, plat_arm_get_mmap());
 
 	enable_mmu_el3(0);
 

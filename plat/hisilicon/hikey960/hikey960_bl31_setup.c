@@ -14,9 +14,11 @@
 #include <generic_delay_timer.h>
 #include <gicv2.h>
 #include <hi3660.h>
+#include <mmio.h>
 #include <hisi_ipc.h>
 #include <interrupt_mgmt.h>
 #include <interrupt_props.h>
+#include <pl011.h>
 #include <platform.h>
 #include <platform_def.h>
 
@@ -44,6 +46,7 @@
 
 static entry_point_info_t bl32_ep_info;
 static entry_point_info_t bl33_ep_info;
+static console_pl011_t console;
 
 /******************************************************************************
  * On a GICv2 system, the Group 1 secure interrupts are treated as Group 0
@@ -96,7 +99,8 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 		uart_base = PL011_UART6_BASE;
 
 	/* Initialize the console to provide early debug support */
-	console_init(uart_base, PL011_UART_CLK_IN_HZ, PL011_BAUDRATE);
+	console_pl011_register(uart_base, PL011_UART_CLK_IN_HZ,
+			       PL011_BAUDRATE, &console);
 
 	/* Initialize CCI driver */
 	cci_init(CCI400_REG_BASE, cci_map, ARRAY_SIZE(cci_map));
@@ -140,6 +144,19 @@ void bl31_plat_arch_setup(void)
 			BL31_COHERENT_RAM_LIMIT);
 }
 
+static void hikey960_edma_init(void)
+{
+	int i;
+	uint32_t non_secure;
+
+	non_secure = EDMAC_SEC_CTRL_INTR_SEC | EDMAC_SEC_CTRL_GLOBAL_SEC;
+	mmio_write_32(EDMAC_SEC_CTRL, non_secure);
+
+	for (i = 0; i < EDMAC_CHANNEL_NUMS; i++) {
+		mmio_write_32(EDMAC_AXI_CONF(i), (1 << 6) | (1 << 18));
+	}
+}
+
 void bl31_platform_setup(void)
 {
 	/* Initialize the GIC driver, cpu and distributor interfaces */
@@ -147,6 +164,8 @@ void bl31_platform_setup(void)
 	gicv2_distif_init();
 	gicv2_pcpu_distif_init();
 	gicv2_cpuif_enable();
+
+	hikey960_edma_init();
 
 	hisi_ipc_init();
 }

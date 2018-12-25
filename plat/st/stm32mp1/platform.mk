@@ -8,14 +8,22 @@ ARM_CORTEX_A7		:=	yes
 ARM_WITH_NEON		:=	yes
 BL2_AT_EL3		:=	1
 USE_COHERENT_MEM	:=	0
+MULTI_CONSOLE_API	:=	1
 
 STM32_TF_VERSION	?=	0
 
 # Not needed for Cortex-A7
 WORKAROUND_CVE_2017_5715:=	0
 
+# Number of TF-A copies in the device
+STM32_TF_A_COPIES		:=	2
+$(eval $(call add_define,STM32_TF_A_COPIES))
+PLAT_PARTITION_MAX_ENTRIES	:=	$(shell echo $$(($(STM32_TF_A_COPIES) + 1)))
+$(eval $(call add_define,PLAT_PARTITION_MAX_ENTRIES))
+
 PLAT_INCLUDES		:=	-Iplat/st/stm32mp1/include/
 PLAT_INCLUDES		+=	-Iinclude/common/tbbr
+PLAT_INCLUDES		+=	-Iinclude/drivers/partition
 PLAT_INCLUDES		+=	-Iinclude/drivers/st
 
 # Device tree
@@ -27,8 +35,7 @@ include lib/libfdt/libfdt.mk
 
 PLAT_BL_COMMON_SOURCES	:=	plat/st/stm32mp1/stm32mp1_common.c
 
-PLAT_BL_COMMON_SOURCES	+=	drivers/console/aarch32/console.S			\
-				drivers/st/uart/aarch32/stm32_console.S
+PLAT_BL_COMMON_SOURCES	+=	drivers/st/uart/aarch32/stm32_console.S
 
 ifneq (${ENABLE_STACK_PROTECTOR},0)
 PLAT_BL_COMMON_SOURCES	+=	plat/st/stm32mp1/stm32mp1_stack_protector.c
@@ -56,10 +63,18 @@ PLAT_BL_COMMON_SOURCES	+=	${LIBFDT_SRCS}						\
 				plat/st/stm32mp1/stm32mp1_helper.S			\
 				plat/st/stm32mp1/stm32mp1_security.c
 
-BL2_SOURCES		+=	drivers/io/io_dummy.c					\
+BL2_SOURCES		+=	drivers/io/io_block.c					\
+				drivers/io/io_dummy.c					\
 				drivers/io/io_storage.c					\
+				drivers/st/io/io_stm32image.c				\
 				plat/st/stm32mp1/bl2_io_storage.c			\
 				plat/st/stm32mp1/bl2_plat_setup.c
+
+BL2_SOURCES		+=	drivers/mmc/mmc.c					\
+				drivers/partition/gpt.c					\
+				drivers/partition/partition.c				\
+				drivers/st/io/io_mmc.c					\
+				drivers/st/mmc/stm32_sdmmc2.c
 
 BL2_SOURCES		+=	drivers/st/ddr/stm32mp1_ddr.c				\
 				drivers/st/ddr/stm32mp1_ram.c
@@ -67,10 +82,6 @@ BL2_SOURCES		+=	drivers/st/ddr/stm32mp1_ddr.c				\
 BL2_SOURCES		+=	common/desc_image_load.c				\
 				plat/st/stm32mp1/plat_bl2_mem_params_desc.c		\
 				plat/st/stm32mp1/plat_image_load.c
-
-# For memory footprint optimization, build with thumb and interwork support
-ASFLAGS			+=	-mthumb -mthumb-interwork
-TF_CFLAGS		+=	-mthumb -mthumb-interwork
 
 # Macros and rules to build TF binary
 STM32_TF_ELF_LDFLAGS	:=	--hash-style=gnu --as-needed

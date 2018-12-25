@@ -4,15 +4,18 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <arch_helpers.h>
 #include <debug.h>
 #include <desc_image_load.h>
 #include <libfdt.h>
 #include <platform.h>
+#include <sgi_variant.h>
 
 /*******************************************************************************
  * This function inserts Platform information via device tree nodes as,
  * system-id {
  *    platform-id = <0>;
+ *    config-id = <0>;
  * }
  ******************************************************************************/
 static int plat_sgi_append_config_node(void)
@@ -20,12 +23,11 @@ static int plat_sgi_append_config_node(void)
 	bl_mem_params_node_t *mem_params;
 	void *fdt;
 	int nodeoffset, err;
-	unsigned int platid = 0;
-	char *platform_name;
+	unsigned int platid = 0, platcfg = 0;
 
-	mem_params = get_bl_mem_params_node(HW_CONFIG_ID);
+	mem_params = get_bl_mem_params_node(NT_FW_CONFIG_ID);
 	if (mem_params == NULL) {
-		ERROR("HW CONFIG base address is NULL");
+		ERROR("NT_FW CONFIG base address is NULL");
 		return -1;
 	}
 
@@ -33,43 +35,32 @@ static int plat_sgi_append_config_node(void)
 
 	/* Check the validity of the fdt */
 	if (fdt_check_header(fdt) != 0) {
-		ERROR("Invalid HW_CONFIG DTB passed\n");
+		ERROR("Invalid NT_FW_CONFIG DTB passed\n");
 		return -1;
 	}
 
-	platform_name = (char *)fdt_getprop(fdt, 0, "compatible", NULL);
-
-	if (platform_name == NULL) {
-		ERROR("Invalid HW_CONFIG DTB passed\n");
-		return -1;
-	}
-
-	if (strcmp(platform_name, "arm,sgi575") == 0) {
-		platid = mmio_read_32(SSC_VERSION);
-	} else {
-		WARN("Invalid platform\n");
-		return -1;
-	}
-
-	/* Increase DTB blob by 512 byte */
-	err = fdt_open_into(fdt, fdt, mem_params->image_info.image_size + 512);
-	if (err < 0) {
-		ERROR("Failed to open HW_CONFIG DTB\n");
-		return -1;
-	}
-
-	/* Create "/system-id" node */
-	nodeoffset = fdt_add_subnode(fdt, 0, "system-id");
+	nodeoffset = fdt_subnode_offset(fdt, 0, "system-id");
 	if (nodeoffset < 0) {
-		ERROR("Failed to add node system-id\n");
+		ERROR("Failed to get system-id node offset\n");
 		return -1;
 	}
 
+	platid = plat_arm_sgi_get_platform_id();
 	err = fdt_setprop_u32(fdt, nodeoffset, "platform-id", platid);
 	if (err < 0) {
-		ERROR("Failed to add node platform-id\n");
+		ERROR("Failed to set platform-id\n");
 		return -1;
 	}
+
+	platcfg = plat_arm_sgi_get_config_id();
+	err = fdt_setprop_u32(fdt, nodeoffset, "config-id", platcfg);
+	if (err < 0) {
+		ERROR("Failed to set config-id\n");
+		return -1;
+	}
+
+	flush_dcache_range((uintptr_t)fdt, mem_params->image_info.image_size);
+
 	return 0;
 }
 
