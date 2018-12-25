@@ -38,29 +38,29 @@
 #define __stringify_1(x)	#x
 #define __stringify(x)		__stringify_1(x)
 
-#define ICC_GRPEN1_EL1  S3_0_c12_c12_7
-DEFINE_RENAME_SYSREG_WRITE_FUNC(icc_igrpen1_el1, ICC_GRPEN1_EL1)
+/* #define ICC_GRPEN1_EL1  S3_0_c12_c12_7 */
+/* DEFINE_RENAME_SYSREG_WRITE_FUNC(icc_igrpen1_el1, ICC_GRPEN1_EL1) */
 
 #define MPIDR_LEVEL_BITS_SHIFT	3
 #define MPIDR_LEVEL_BITS		(1 << MPIDR_LEVEL_BITS_SHIFT)
 #define MPIDR_LEVEL_MASK		((1 << MPIDR_LEVEL_BITS) - 1)
 
 #define MPIDR_LEVEL_SHIFT(level) \
-	(((1 << level) >> 1) << MPIDR_LEVEL_BITS_SHIFT)
+	(((1 << (level)) >> 1) << MPIDR_LEVEL_BITS_SHIFT)
 
 #define MPIDR_AFFINITY_LEVEL(mpidr, level) \
-	((mpidr >> MPIDR_LEVEL_SHIFT(level)) & MPIDR_LEVEL_MASK)
+	(((mpidr) >> MPIDR_LEVEL_SHIFT(level)) & MPIDR_LEVEL_MASK)
 
 #define CPU_LOGIC_MAP_RESET_VAL	(-1L)
 static uint64_t cpu_logical_map[PLATFORM_CORE_COUNT];
 
 struct gic_chip_data {
-	unsigned int saved_enable[32];
-	unsigned int saved_conf[64];
-	unsigned int saved_priority[255];
-	uint64_t saved_target[1020];
-	unsigned int saved_group[32];
-	unsigned int saved_grpmod[32];
+	unsigned int saved_enable[10];
+	unsigned int saved_conf[20];
+	unsigned int saved_priority[80];
+	uint64_t saved_target[320];
+	unsigned int saved_group[10];
+	unsigned int saved_grpmod[10];
 	unsigned int rdist_base[MAX_RDIST_NR];
 	unsigned int saved_active_sel;
 	unsigned int saved_sgi[PLATFORM_CORE_COUNT];
@@ -236,10 +236,7 @@ void gic_dist_restore(void)
 
 	for (i = 1; i < DIV_ROUND_UP(gic_irqs, 32); i++)
 		mmio_write_32(dist_base + GICE_V3_IGRPMOD0 + i * 4, gic_data[0].saved_grpmod[i]);
-#if CFG_MICROTRUST_TEE_SUPPORT
-	for (i = 1; i < DIV_ROUND_UP(gic_irqs, 32); i++)
-		mmio_write_32(dist_base + GICD_ISPENDR + i * 4, gic_data[0].saved_spi_pending[i]);
-#endif
+
 	/* enable all groups & ARE */
 	ctlr = GICD_V3_CTLR_ENABLE_G0 | GICD_V3_CTLR_ENABLE_G1NS | GICD_V3_CTLR_ENABLE_G1S |
 		GICD_V3_CTLR_ARE_S | GICD_V3_CTLR_ARE_NS;
@@ -660,11 +657,6 @@ void gic_setup(void)
 	gic_distif_init(gicd_base);
 	gic_cpuif_init();
 
-	/* Register WDT handler */
-	/* request_fiq(WDT_IRQ_BIT_ID, aee_wdt_dump_all_core, INT_EDGE_FALLING, INTR_GROUP0, NULL); */
-	/* Register PCCIF1 IRQ0 and IRQ1 handler */
-	/* uest_fiq(PCCIF1_IRQ0_BIT_ID, ccif_irq0_handler, INT_LEVEL_LOW, INTR_GROUP0, NULL); */
-	/* uest_fiq(PCCIF1_IRQ1_BIT_ID, ccif_irq1_handler, INT_LEVEL_LOW, INTR_GROUP0, NULL); */
 	setup_int_schedule_mode(SW_MODE, 0xF);
 	clear_sec_pol_ctl_en();
 }
@@ -865,30 +857,6 @@ uint64_t mt_irq_dump_status(uint32_t irq)
 	}
 
 	return rc;
-}
-
-void dump_gic(void)
-{
-	unsigned int cpuid = 0;
-	unsigned int base = 0;
-	unsigned int scr_el3;
-
-	scr_el3 = read_scr_el3();
-	INFO("SCR_EL3:0x%x\n", scr_el3);
-
-	INFO("GICD_CTLR:0x%x\n", mmio_read_32(MT_GIC_BASE + GICD_CTLR));
-	INFO("ICC_PMR_EL1:0x%lx\n", (long unsigned int) read_icc_pmr_el1());
-	INFO("ICC_SRE_EL1:0x%lx\n", (long unsigned int) read_icc_sre_el1());
-	INFO("ICC_SRE_EL2:0x%lx\n", (long unsigned int) read_icc_sre_el2());
-	INFO("ICC_SRE_EL3:0x%lx\n", (long unsigned int) read_icc_sre_el3());
-	INFO("ICC_IGRPEN0_EL1:0x%lx\n", (long unsigned int) read_icc_igrpen0_el1());
-	INFO("ICC_IGRPEN1_EL3:0x%lx\n", (long unsigned int) read_icc_igrpen1_el3());
-	for (cpuid = 0 ; cpuid < PLATFORM_CORE_COUNT ; cpuid++) {
-		base = MT_GIC_RDIST_BASE + cpuid*SZ_64K*2;
-		INFO("cpu[%d]GICR_IGROUPR0:0x%x\n", cpuid, mmio_read_32(base + GICR_IGROUPR0));
-		INFO("cpu[%d]GICR_IGRPMODR0:0x%x\n", cpuid, mmio_read_32(base + GICR_IGRPMODR0));
-		INFO("cpu[%d]GICR_CTLR:0x%x\n", cpuid, mmio_read_32(base + GICR_CTLR));
-	}
 }
 
 void gic_sync_dcm_enable(void)

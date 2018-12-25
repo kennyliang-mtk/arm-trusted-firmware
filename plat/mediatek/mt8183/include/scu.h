@@ -10,4 +10,4 @@
 void disable_scu(unsigned long mpidr);
 void enable_scu(unsigned long mpidr);
 
-#endif
+#endif /* SCU_H */

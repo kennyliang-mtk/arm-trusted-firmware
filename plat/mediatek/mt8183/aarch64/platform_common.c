@@ -6,9 +6,9 @@
 
 #include <arch_helpers.h>
 #include <bl_common.h>
-#include <cci.h>
 #include <debug.h>
 #include <mt_gic_v3.h>
+#include <mcsi/mcsi.h>
 #include <platform_def.h>
 #include <utils.h>
 #include <xlat_tables.h>
@@ -29,14 +29,6 @@ const mmap_region_t plat_mmap[] = {
 			MT_DEVICE | MT_RW | MT_SECURE),
 	MAP_REGION_FLAT(MTK_DEV_RNG2_BASE, MTK_DEV_RNG2_SIZE,
 			MT_DEVICE | MT_RW | MT_SECURE),
-	MAP_REGION_FLAT(RAM_CONSOLE_BASE & ~(PAGE_SIZE_MASK), RAM_CONSOLE_SIZE,
-					MT_DEVICE | MT_RW | MT_NS),
-	MAP_REGION_FLAT(PLAT_MT_CCI_BASE & ~(PAGE_SIZE_MASK), CCI_SIZE,
-			MT_DEVICE | MT_RW | MT_SECURE),
-	MAP_REGION_FLAT(MCUCFG_BASE & ~(PAGE_SIZE_MASK), MT_MCUSYS_SIZE,
-					MT_DEVICE | MT_RW | MT_SECURE),
-	MAP_REGION_FLAT(CFG_SF_CTRL & ~(PAGE_SIZE_MASK), PAGE_SIZE,
-					MT_DEVICE | MT_RW | MT_SECURE),
 	{ 0 }
 
 };
@@ -46,31 +38,20 @@ const mmap_region_t plat_mmap[] = {
  * Macro generating the code for the function setting up the pagetables as per
  * the platform memory map & initialize the mmu, for the given exception level
  ******************************************************************************/
-#define DEFINE_CONFIGURE_MMU_EL(_el)					\
-	void plat_configure_mmu_el ## _el(unsigned long total_base,	\
-					  unsigned long total_size,	\
-					  unsigned long ro_start,	\
-					  unsigned long ro_limit,	\
-					  unsigned long coh_start,	\
-					  unsigned long coh_limit)	\
-	{								\
-		mmap_add_region(total_base, total_base,			\
-				total_size,				\
-				MT_MEMORY | MT_RW | MT_SECURE);		\
-		mmap_add_region(ro_start, ro_start,			\
-				ro_limit - ro_start,			\
-				MT_MEMORY | MT_RO | MT_SECURE);		\
-		mmap_add_region(coh_start, coh_start,			\
-				coh_limit - coh_start,			\
-				MT_DEVICE | MT_RW | MT_SECURE);		\
-		mmap_add(plat_mmap);					\
-		init_xlat_tables();					\
-									\
-		enable_mmu_el ## _el(0);				\
-	}
-
-/* Define EL3 variants of the function initialising the MMU */
-DEFINE_CONFIGURE_MMU_EL(3)
+void plat_configure_mmu_el3(unsigned long total_base,
+							unsigned long total_size,
+							unsigned long ro_start,
+							unsigned long ro_limit,
+							unsigned long coh_start,
+							unsigned long coh_limit)
+{
+	mmap_add_region(total_base, total_base, total_size, MT_MEMORY | MT_RW | MT_SECURE);
+	mmap_add_region(ro_start, ro_start, ro_limit - ro_start, MT_MEMORY | MT_RO | MT_SECURE);
+	mmap_add_region(coh_start, coh_start, coh_limit - coh_start, MT_DEVICE | MT_RW | MT_SECURE);
+	mmap_add(plat_mmap);
+	init_xlat_tables();
+	enable_mmu_el3(0);
+}
 
 unsigned int plat_get_syscnt_freq2(void)
 {
@@ -80,21 +61,25 @@ unsigned int plat_get_syscnt_freq2(void)
 void plat_cci_init(void)
 {
 	/* Initialize CCI driver */
-	cci_init(PLAT_MT_CCI_BASE, cci_map, ARRAY_SIZE(cci_map));
+	mcsi_init(PLAT_MT_CCI_BASE, ARRAY_SIZE(cci_map));
 }
 
 void plat_cci_enable(void)
 {
-	/*
-	 * Enable CCI coherency for this cluster.
-	 * No need for locks as no other cpu is active at the moment.
-	 */
-	cci_enable_snoop_dvm_reqs(MPIDR_AFFLVL1_VAL(read_mpidr()));
+	/* Enable CCI coherency for this cluster. */
+	/* No need for locks as no other cpu is active at the moment. */
+	cci_enable_cluster_coherency(read_mpidr());
 }
 
 void plat_cci_disable(void)
 {
-	cci_disable_snoop_dvm_reqs(MPIDR_AFFLVL1_VAL(read_mpidr()));
+	cci_disable_cluster_coherency(read_mpidr());
+}
+
+void plat_cci_init_sf(void)
+{
+	/* Init mcsi snoop filter. */
+	cci_init_sf();
 }
 
 void plat_gic_init(void)

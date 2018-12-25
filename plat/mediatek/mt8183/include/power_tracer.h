@@ -16,4 +16,5 @@
 
 void trace_power_flow(unsigned long mpidr, unsigned char mode);
 
-#endif
+#endif /* POWER_TRACER_H */
+

@@ -151,4 +151,4 @@ static inline void gicd_v3_set_irouter(unsigned int base, unsigned int id, uint6
     mmio_write_64(reg, aff);
 }
 
-#endif /* end of MT_GIC_V3_H */
+#endif /* MT_GIC_V3_H */

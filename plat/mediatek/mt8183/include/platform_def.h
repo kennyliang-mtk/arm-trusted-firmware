@@ -57,8 +57,8 @@
 #define MTK_DEV_RNG0_SIZE    (0x490000)
 #define MTK_DEV_RNG1_BASE    (IO_PHYS + 0x1000000)
 #define MTK_DEV_RNG1_SIZE    (0x4000000)
-#define MTK_DEV_RNG2_BASE    (MT_GIC_BASE)
-#define MTK_DEV_RNG2_SIZE    (0x400000)
+#define MTK_DEV_RNG2_BASE    (0x0C000000)
+#define MTK_DEV_RNG2_SIZE    (0x600000)
 #define MT_MCUSYS_SIZE       (0x90000)
 #define RAM_CONSOLE_BASE     (0x11D000)
 #define RAM_CONSOLE_SIZE     (0x1000)
@@ -120,23 +120,23 @@
 #define PLAT_ARM_GICD_BASE BASE_GICD_BASE
 #define PLAT_ARM_GICC_BASE BASE_GICC_BASE
 
-#define PLAT_ARM_G1S_IRQ_PROPS(grp) \
-    INTR_PROP_DESC(MT_IRQ_SEC_SGI_0, GIC_HIGHEST_SEC_PRIORITY, grp, \
-	    GIC_INTR_CFG_EDGE), \
-    INTR_PROP_DESC(MT_IRQ_SEC_SGI_1, GIC_HIGHEST_SEC_PRIORITY, grp, \
-	    GIC_INTR_CFG_EDGE), \
-    INTR_PROP_DESC(MT_IRQ_SEC_SGI_2, GIC_HIGHEST_SEC_PRIORITY, grp, \
-	    GIC_INTR_CFG_EDGE), \
-    INTR_PROP_DESC(MT_IRQ_SEC_SGI_3, GIC_HIGHEST_SEC_PRIORITY, grp, \
-	    GIC_INTR_CFG_EDGE), \
-    INTR_PROP_DESC(MT_IRQ_SEC_SGI_4, GIC_HIGHEST_SEC_PRIORITY, grp, \
-	    GIC_INTR_CFG_EDGE), \
-    INTR_PROP_DESC(MT_IRQ_SEC_SGI_5, GIC_HIGHEST_SEC_PRIORITY, grp, \
-	    GIC_INTR_CFG_EDGE), \
-    INTR_PROP_DESC(MT_IRQ_SEC_SGI_6, GIC_HIGHEST_SEC_PRIORITY, grp, \
-	    GIC_INTR_CFG_EDGE), \
-    INTR_PROP_DESC(MT_IRQ_SEC_SGI_7, GIC_HIGHEST_SEC_PRIORITY, grp, \
-	    GIC_INTR_CFG_EDGE) \
+#define PLAT_ARM_G1S_IRQ_PROPS(grp) ( \
+INTR_PROP_DESC(MT_IRQ_SEC_SGI_0, GIC_HIGHEST_SEC_PRIORITY, grp, \
+			GIC_INTR_CFG_EDGE), \
+INTR_PROP_DESC(MT_IRQ_SEC_SGI_1, GIC_HIGHEST_SEC_PRIORITY, grp, \
+			GIC_INTR_CFG_EDGE), \
+INTR_PROP_DESC(MT_IRQ_SEC_SGI_2, GIC_HIGHEST_SEC_PRIORITY, grp, \
+			GIC_INTR_CFG_EDGE), \
+INTR_PROP_DESC(MT_IRQ_SEC_SGI_3, GIC_HIGHEST_SEC_PRIORITY, grp, \
+			GIC_INTR_CFG_EDGE), \
+INTR_PROP_DESC(MT_IRQ_SEC_SGI_4, GIC_HIGHEST_SEC_PRIORITY, grp, \
+			GIC_INTR_CFG_EDGE), \
+INTR_PROP_DESC(MT_IRQ_SEC_SGI_5, GIC_HIGHEST_SEC_PRIORITY, grp, \
+			GIC_INTR_CFG_EDGE), \
+INTR_PROP_DESC(MT_IRQ_SEC_SGI_6, GIC_HIGHEST_SEC_PRIORITY, grp, \
+			GIC_INTR_CFG_EDGE), \
+INTR_PROP_DESC(MT_IRQ_SEC_SGI_7, GIC_HIGHEST_SEC_PRIORITY, grp, \
+			GIC_INTR_CFG_EDGE)) \
 
 #define PLAT_ARM_G0_IRQ_PROPS(grp)
 
@@ -185,11 +185,11 @@
 
 /* RGU other related */
 #define MTK_WDT_MODE_DUAL_MODE    0x0040
-#define MTK_WDT_MODE_IRQ    0x0008
-#define MTK_WDT_MODE_KEY    0x22000000
-#define MTK_WDT_MODE_EXTEN    0x0004
-#define MTK_WDT_SWRST_KEY    0x1209
-#define MTK_WDT_RESTART_KEY    (0x1971)
+#define MTK_WDT_MODE_IRQ          0x0008
+#define MTK_WDT_MODE_KEY          0x22000000
+#define MTK_WDT_MODE_EXTEN        0x0004
+#define MTK_WDT_SWRST_KEY         0x1209
+#define MTK_WDT_RESTART_KEY       0x1971
 
 /*******************************************************************************
  * TRNG Registers
@@ -257,26 +257,24 @@
 #define PLAT_MAX_RET_STATE		U(1)
 #define PLAT_MAX_OFF_STATE		U(2)
 
-
 #define PLATFORM_CACHE_LINE_SIZE        64
 #define PLATFORM_SYSTEM_COUNT           1
 #define PLATFORM_CLUSTER_COUNT          2
 #define PLATFORM_CLUSTER0_CORE_COUNT    4
 #define PLATFORM_CLUSTER1_CORE_COUNT    4
 #define PLATFORM_CORE_COUNT             (PLATFORM_CLUSTER1_CORE_COUNT + \
-                                         PLATFORM_CLUSTER0_CORE_COUNT)
+					 PLATFORM_CLUSTER0_CORE_COUNT)
 #define PLATFORM_MAX_CPUS_PER_CLUSTER   4
 #define PLATFORM_NUM_AFFS               (PLATFORM_SYSTEM_COUNT + \
-                                         PLATFORM_CLUSTER_COUNT + \
-                                         PLATFORM_CORE_COUNT)
+					 PLATFORM_CLUSTER_COUNT + \
+					 PLATFORM_CORE_COUNT)
 
 /*******************************************************************************
  * Platform memory map related constants
  ******************************************************************************/
 
 #define TZRAM_BASE          (0x54600000)
-#define TZRAM_SIZE          (0x24000)
-#define DRAM_EMI_BASE       (0x40000000)
+#define TZRAM_SIZE          (0x00020000)
 
 /*******************************************************************************
  * BL31 specific defines.
@@ -294,8 +292,8 @@
  ******************************************************************************/
 #define PLAT_PHY_ADDR_SPACE_SIZE    (1ULL << 32)
 #define PLAT_VIRT_ADDR_SPACE_SIZE   (1ULL << 32)
-#define MAX_XLAT_TABLES     7
-#define MAX_MMAP_REGIONS    16
+#define MAX_XLAT_TABLES             4
+#define MAX_MMAP_REGIONS            16
 
 /*******************************************************************************
  * Declarations and constants to access the mailboxes safely. Each mailbox is
