@@ -20,6 +20,7 @@
 #include <plat_private.h>
 #include <platform_def.h>
 #include <scu.h>
+#include <spm.h>
 #include <drivers/ti/uart/uart_16550.h>
 
 static entry_point_info_t bl32_ep_info;
@@ -107,6 +108,7 @@ void bl31_platform_setup(void)
 #if CONFIG_SPMC_MODE == 1
 	spmc_init();
 #endif
+	spm_boot_init();
 }
 
 /*******************************************************************************
