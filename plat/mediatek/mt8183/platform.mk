@@ -13,6 +13,7 @@ PLAT_INCLUDES := -I${MTK_PLAT}/common/                            \
                  -I${MTK_PLAT_SOC}/drivers/spmc/                  \
                  -I${MTK_PLAT_SOC}/drivers/gpio/                  \
                  -I${MTK_PLAT_SOC}/drivers/pmic/                  \
+                 -I${MTK_PLAT_SOC}/drivers/spm/                   \
                  -I${MTK_PLAT_SOC}/include/                       \
                  -Iinclude/common/                                \
                  -Iinclude/drivers/                               \
@@ -44,6 +45,7 @@ BL31_SOURCES    += drivers/arm/cci/cci.c                          \
                    ${MTK_PLAT_SOC}/drivers/pmic/pmic_wrap_init.c  \
                    ${MTK_PLAT_SOC}/drivers/pmic/pmic.c            \
                    ${MTK_PLAT_SOC}/drivers/spmc/mtspmc.c          \
+                   ${MTK_PLAT_SOC}/drivers/spm/spm.c              \
                    ${MTK_PLAT_SOC}/drivers/gpio/mtgpio.c          \
                    ${MTK_PLAT_SOC}/plat_pm.c                      \
                    ${MTK_PLAT_SOC}/plat_topology.c                \

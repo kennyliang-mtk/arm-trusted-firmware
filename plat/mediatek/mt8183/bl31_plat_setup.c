@@ -20,6 +20,7 @@
 #include <plat_private.h>
 #include <platform_def.h>
 #include <scu.h>
+#include <spm.h>
 #include <uart8250.h>
 
 static entry_point_info_t bl32_ep_info;
@@ -109,6 +110,7 @@ void bl31_platform_setup(void)
 #if CONFIG_SPMC_MODE == 1
 	spmc_init();
 #endif
+	spm_boot_init();
 }
 
 /*******************************************************************************
