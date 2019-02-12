@@ -15,7 +15,8 @@ PLAT_INCLUDES := -I${MTK_PLAT}/common/                            \
                  -I${MTK_PLAT_SOC}/drivers/pmic/                  \
                  -I${MTK_PLAT_SOC}/drivers/spm/                   \
                  -I${MTK_PLAT_SOC}/drivers/rtc/                   \
-                 -I${MTK_PLAT_SOC}/include/
+                 -I${MTK_PLAT_SOC}/include/                       \
+                 -I${MTK_PLAT_SOC}/drivers/sspm/
 
 PLAT_BL_COMMON_SOURCES := lib/xlat_tables/aarch64/xlat_tables.c       \
                           lib/xlat_tables/xlat_tables_common.c        \
@@ -56,7 +57,8 @@ BL31_SOURCES    += drivers/arm/cci/cci.c                                 \
                    ${MTK_PLAT_SOC}/plat_dcm.c                            \
                    ${MTK_PLAT_SOC}/bl31_plat_setup.c                     \
                    ${MTK_PLAT_SOC}/plat_debug.c                          \
-                   ${MTK_PLAT_SOC}/scu.c
+                   ${MTK_PLAT_SOC}/scu.c                                 \
+                   ${MTK_PLAT_SOC}/drivers/sspm/sspm.c
 
 # Enable workarounds for selected Cortex-A53 erratas.
 ERRATA_A53_826319 := 0
