@@ -28,6 +28,7 @@
 #include <rtc.h>
 #include <spm.h>
 #include <spm_suspend.h>
+#include <rtc.h>
 
 #define MTK_LOCAL_STATE_OFF     2
 
