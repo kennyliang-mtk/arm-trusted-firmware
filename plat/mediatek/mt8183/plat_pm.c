@@ -27,6 +27,7 @@
 #include <pmic.h>
 #include <spm.h>
 #include <spm_suspend.h>
+#include <rtc.h>
 
 #define MTK_LOCAL_STATE_OFF     2
 
@@ -128,6 +129,8 @@ static void __dead2 plat_system_off(void)
 {
 	INFO("MTK System Off\n");
 
+	rtc_power_off_sequence();
+	wk_pmic_enable_sdn_delay();
 	pmic_power_off();
 
 	wfi();
