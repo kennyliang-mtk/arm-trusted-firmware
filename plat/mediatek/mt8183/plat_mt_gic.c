@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#define MAX_IRQ_NR			335
 #ifndef MAX_GIC_NR
 #define MAX_GIC_NR			1
 #endif
@@ -55,12 +56,12 @@
 static uint64_t cpu_logical_map[PLATFORM_CORE_COUNT];
 
 struct gic_chip_data {
-	unsigned int saved_enable[10];
-	unsigned int saved_conf[20];
-	unsigned int saved_priority[80];
-	uint64_t saved_target[320];
-	unsigned int saved_group[10];
-	unsigned int saved_grpmod[10];
+	unsigned int saved_enable[11];
+	unsigned int saved_conf[21];
+	unsigned int saved_priority[84];
+	uint64_t saved_target[MAX_IRQ_NR];
+	unsigned int saved_group[11];
+	unsigned int saved_grpmod[11];
 	unsigned int rdist_base[MAX_RDIST_NR];
 	unsigned int saved_active_sel;
 	unsigned int saved_sgi[PLATFORM_CORE_COUNT];
@@ -134,7 +135,7 @@ void gic_dist_save(void)
 
 	dist_base = MT_GIC_BASE;
 
-	gic_irqs = 32 * ((gicd_read_typer(dist_base) & TYPER_IT_LINES_NO_MASK) + 1);
+	gic_irqs = MAX_IRQ_NR;
 
 	for (i = 1; i < DIV_ROUND_UP(gic_irqs, 16); i++)
 		gic_data[0].saved_conf[i] =
@@ -195,7 +196,7 @@ void gic_dist_restore(void)
 	unsigned int i = 0;
 
 	dist_base = MT_GIC_BASE;
-	gic_irqs = 32 * ((gicd_read_typer(dist_base) & TYPER_IT_LINES_NO_MASK) + 1);
+	gic_irqs = MAX_IRQ_NR;
 
 	/* get the base of redistributor first */
 	if (gic_populate_rdist(&rdist_sgi_base) == -1) {
