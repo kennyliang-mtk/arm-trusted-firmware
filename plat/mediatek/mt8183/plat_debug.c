@@ -10,6 +10,8 @@
 #include <plat_debug.h>
 #include <platform_def.h>
 
+#define MP1_CPUTOP_PWR_CON	0x10006218
+
 void circular_buffer_setup(void)
 {
 	/* Clear DBG_CONTROL.lastpc_disable to enable circular buffer */
