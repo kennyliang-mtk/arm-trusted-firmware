@@ -198,10 +198,6 @@ void spm_system_suspend(void)
 {
 	spm_lock_get();
 
-	/* workaround for MCUSYS idle config */
-	mmio_write_32(0x0c530b60, 0xFFFFFFFF);
-	NOTICE("0x0c530b60 = 0x%x\n", mmio_read_32(0x0c530b60));
-
 	go_to_sleep_before_wfi();
 	spm_lock_release();
 }
