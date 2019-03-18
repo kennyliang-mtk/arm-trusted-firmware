@@ -1,8 +1,8 @@
 /*
-* Copyright (c) 2018, ARM Limited and Contributors. All rights reserved.
-*
-* SPDX-License-Identifier: BSD-3-Clause
-*/
+ * Copyright (c) 2018, ARM Limited and Contributors. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #include <bakery_lock.h>
 #include <debug.h>
 #include <delay_timer.h>

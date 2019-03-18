@@ -36,7 +36,7 @@ static uintptr_t secure_entrypoint;
 static void mp1_L2_desel_config(void)
 {
 	mmio_write_64(MCUCFG_BASE + 0x2200, 0x2092c820);
-	
+
 	dsb();
 	isb();
 }
