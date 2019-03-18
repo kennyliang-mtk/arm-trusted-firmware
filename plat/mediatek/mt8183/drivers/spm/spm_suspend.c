@@ -49,7 +49,6 @@ static const struct pwr_ctrl suspend_ctrl = {
 	.wake_src = WAKE_SRC_FOR_SUSPEND,
 	.pcm_flags = SLP_PCM_FLAGS,
 	.pcm_flags1 = SLP_PCM_FLAGS1,
-	.timer_val = 0x28000,
 
 	/* SPM_AP_STANDBY_CON */
 	.wfi_op = 0x1,
@@ -176,8 +175,9 @@ void go_to_sleep_before_wfi(void)
 	INFO("cpu%d: \"%s\", wakesrc = 0x%x\n",
 	     cpu, spm_get_firmware_version(), suspend_ctrl.wake_src);
 	INFO("settle = %u, sec = %u, sw_flag = 0x%x 0x%x, src_req = 0x%x\n",
-	     settle, suspend_ctrl.timer_val / 32768, suspend_ctrl.pcm_flags,
-	     suspend_ctrl.pcm_flags1, mmio_read_32(SPM_SRC_REQ));
+	     settle, mmio_read_32(PCM_TIMER_VAL) / 32768,
+	     suspend_ctrl.pcm_flags, suspend_ctrl.pcm_flags1,
+	     mmio_read_32(SPM_SRC_REQ));
 }
 
 static void go_to_sleep_after_wfi(void)
