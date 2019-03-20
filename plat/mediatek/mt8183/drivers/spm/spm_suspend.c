@@ -171,9 +171,11 @@ void go_to_sleep_before_wfi(void)
 	spm_set_pcm_flags(&suspend_ctrl);
 	spm_send_cpu_wakeup_event();
 	spm_set_pcm_wdt(1);
+	spm_disable_pcm_timer();
 
-	INFO("cpu%d: \"%s\", wakesrc = 0x%x\n",
-	     cpu, spm_get_firmware_version(), suspend_ctrl.wake_src);
+	INFO("cpu%d: \"%s\", wakesrc = 0x%x, pcm_con1 = 0x%x\n",
+	     cpu, spm_get_firmware_version(), suspend_ctrl.wake_src,
+	     mmio_read_32(PCM_CON1));
 	INFO("settle = %u, sec = %u, sw_flag = 0x%x 0x%x, src_req = 0x%x\n",
 	     settle, mmio_read_32(PCM_TIMER_VAL) / 32768,
 	     suspend_ctrl.pcm_flags, suspend_ctrl.pcm_flags1,
@@ -197,7 +199,6 @@ static void go_to_sleep_after_wfi(void)
 void spm_system_suspend(void)
 {
 	spm_lock_get();
-
 	go_to_sleep_before_wfi();
 	spm_lock_release();
 }

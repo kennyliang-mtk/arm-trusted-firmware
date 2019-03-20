@@ -2505,6 +2505,7 @@ struct wake_status {
 	uint32_t log_index;
 };
 
+extern void spm_disable_pcm_timer(void);
 extern void spm_set_bootaddr(unsigned long bootaddr);
 extern void spm_set_cpu_status(int cpu);
 extern void spm_set_power_control(const struct pwr_ctrl *pwrctrl);
