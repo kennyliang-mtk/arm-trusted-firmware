@@ -714,6 +714,15 @@ void spm_set_power_control(const struct pwr_ctrl *pwrctrl)
 		      ((pwrctrl->mp1_cpu3_wfi_en & 0x1) << 0));
 }
 
+void spm_disable_pcm_timer(void)
+{
+	uint32_t con1;
+
+	con1 = (mmio_read_32(PCM_CON1) | SPM_REGWR_CFG_KEY);
+	con1 &= ~PCM_TIMER_EN_LSB;
+	mmio_write_32(PCM_CON1, con1);
+}
+
 void spm_set_wakeup_event(const struct pwr_ctrl *pwrctrl)
 {
 	uint32_t val, mask, isr;
