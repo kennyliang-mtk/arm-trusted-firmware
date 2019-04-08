@@ -171,7 +171,7 @@ void go_to_sleep_before_wfi(void)
 	spm_set_wakeup_event(&suspend_ctrl);
 	spm_set_pcm_flags(&suspend_ctrl);
 	spm_send_cpu_wakeup_event();
-	spm_set_pcm_wdt(1);
+	spm_set_pcm_wdt(0);
 	spm_disable_pcm_timer();
 
 	INFO("cpu%d: \"%s\", wakesrc = 0x%x, pcm_con1 = 0x%x\n",
