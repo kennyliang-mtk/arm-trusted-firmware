@@ -7,9 +7,16 @@
 #include <arch_helpers.h>
 #include <common/bl_common.h>
 #include <common/debug.h>
+#include <mt_gic_v3.h>
+#include <mcsi/mcsi.h>
 #include <platform_def.h>
 #include <lib/utils.h>
 #include <lib/xlat_tables/xlat_tables.h>
+
+static const int cci_map[] = {
+	PLAT_MT_CCI_CLUSTER0_SL_IFACE_IX,
+	PLAT_MT_CCI_CLUSTER1_SL_IFACE_IX
+};
 
 /* Table of regions to map using the MMU.  */
 const mmap_region_t plat_mmap[] = {
@@ -51,3 +58,33 @@ unsigned int plat_get_syscnt_freq2(void)
 {
 	return SYS_COUNTER_FREQ_IN_TICKS;
 }
+
+void plat_cci_init(void)
+{
+	/* Initialize CCI driver */
+	mcsi_init(PLAT_MT_CCI_BASE, ARRAY_SIZE(cci_map));
+}
+
+void plat_cci_enable(void)
+{
+	/* Enable CCI coherency for this cluster. */
+	/* No need for locks as no other cpu is active at the moment. */
+	cci_enable_cluster_coherency(read_mpidr());
+}
+
+void plat_cci_disable(void)
+{
+	cci_disable_cluster_coherency(read_mpidr());
+}
+
+void plat_cci_init_sf(void)
+{
+	/* Init mcsi snoop filter. */
+	cci_init_sf();
+}
+
+void plat_gic_init(void)
+{
+	gic_setup();
+}
+

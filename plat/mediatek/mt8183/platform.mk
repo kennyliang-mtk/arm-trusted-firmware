@@ -8,6 +8,11 @@ MTK_PLAT      := plat/mediatek
 MTK_PLAT_SOC  := ${MTK_PLAT}/${PLAT}
 
 PLAT_INCLUDES := -I${MTK_PLAT}/common/                            \
+                 -I${MTK_PLAT_SOC}/drivers/                       \
+                 -I${MTK_PLAT_SOC}/drivers/spmc/                  \
+                 -I${MTK_PLAT_SOC}/drivers/gpio/                  \
+                 -I${MTK_PLAT_SOC}/drivers/pmic/                  \
+                 -I${MTK_PLAT_SOC}/drivers/rtc/                   \
                  -I${MTK_PLAT_SOC}/include/
 
 PLAT_BL_COMMON_SOURCES := lib/xlat_tables/aarch64/xlat_tables.c       \
@@ -28,10 +33,19 @@ BL31_SOURCES    += drivers/arm/cci/cci.c                                 \
                    lib/cpus/aarch64/cortex_a53.S                         \
                    lib/cpus/aarch64/cortex_a73.S                         \
                    ${MTK_PLAT}/common/mtk_plat_common.c                  \
+                   ${MTK_PLAT}/common/drivers/pmic_wrap/pmic_wrap_init.c \
+                   ${MTK_PLAT}/common/params_setup.c                     \
                    ${MTK_PLAT_SOC}/aarch64/plat_helpers.S                \
                    ${MTK_PLAT_SOC}/aarch64/platform_common.c             \
+                   ${MTK_PLAT_SOC}/drivers/mcsi/mcsi.c                   \
+                   ${MTK_PLAT_SOC}/drivers/pmic/pmic.c                   \
+                   ${MTK_PLAT_SOC}/drivers/rtc/rtc.c                     \
+                   ${MTK_PLAT_SOC}/drivers/spmc/mtspmc.c                 \
+                   ${MTK_PLAT_SOC}/drivers/gpio/mtgpio.c                 \
                    ${MTK_PLAT_SOC}/plat_pm.c                             \
                    ${MTK_PLAT_SOC}/plat_topology.c                       \
+                   ${MTK_PLAT_SOC}/plat_mt_gic.c                         \
+                   ${MTK_PLAT_SOC}/plat_dcm.c                            \
                    ${MTK_PLAT_SOC}/bl31_plat_setup.c                     \
                    ${MTK_PLAT_SOC}/plat_debug.c                          \
                    ${MTK_PLAT_SOC}/scu.c

@@ -10,6 +10,8 @@
 
 	.globl plat_is_my_cpu_primary
 	.globl plat_my_core_pos
+	.globl read_cpuectlr
+	.globl write_cpuectlr
 
 func plat_is_my_cpu_primary
 	mrs x0, mpidr_el1
@@ -32,3 +34,14 @@ func plat_my_core_pos
 	add     x0, x1, x0, LSR #6
 	ret
 endfunc plat_my_core_pos
+
+func read_cpuectlr
+	MRS     x0, S3_1_C15_C2_1
+	ret
+endfunc read_cpuectlr
+
+func write_cpuectlr
+	MSR     S3_1_C15_C2_1, x0
+	ret
+endfunc write_cpuectlr
+
