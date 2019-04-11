@@ -25,7 +25,6 @@
 #include <plat_pm.h>
 #include <plat_private.h>
 #include <pmic.h>
-#include <rtc.h>
 #include <spm.h>
 #include <spm_suspend.h>
 #include <rtc.h>

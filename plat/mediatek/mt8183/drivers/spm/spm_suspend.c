@@ -5,13 +5,13 @@
  */
 
 #include <arch_helpers.h>
-#include <debug.h>
+#include <common/debug.h>
 #include <mt_gic_v3.h>
-#include <mmio.h>
+#include <lib/mmio.h>
 #include <platform_def.h>
 #include <plat_mt_cirq.h>
 #include <spm.h>
-#include <uart8250.h>
+#include <drivers/ti/uart/uart_16550.h>
 
 #define SPM_SYSCLK_SETTLE       99
 
@@ -185,13 +185,9 @@ void go_to_sleep_before_wfi(void)
 extern console_t *console_list;
 static void enable_uart(void)
 {
-#ifdef MULTI_CONSOLE_API
-	static console_8250_t console;
+	static console_16550_t console;
 	console_list = NULL;
-	console_8250_register(UART0_BASE, UART_CLOCK, UART_BAUDRATE, &console);
-#else
-	console_init(UART0_BASE, UART_CLOCK, UART_BAUDRATE);
-#endif
+	console_16550_register(UART0_BASE, UART_CLOCK, UART_BAUDRATE, &console);
 }
 
 static void go_to_sleep_after_wfi(void)

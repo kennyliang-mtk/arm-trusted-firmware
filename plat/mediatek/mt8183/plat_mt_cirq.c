@@ -5,9 +5,9 @@
  */
 
 #include <arch_helpers.h>
-#include <debug.h>
-#include <gic_common.h>
-#include <mmio.h>
+#include <common/debug.h>
+#include <drivers/arm/gic_common.h>
+#include <lib/mmio.h>
 #include <plat_mt_cirq.h>
 #include <platform_def.h>
 #include <mt_gic_v3.h>

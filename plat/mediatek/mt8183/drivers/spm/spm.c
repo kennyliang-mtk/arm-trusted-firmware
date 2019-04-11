@@ -3,10 +3,10 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <bakery_lock.h>
-#include <debug.h>
-#include <delay_timer.h>
-#include <mmio.h>
+#include <lib/bakery_lock.h>
+#include <common/debug.h>
+#include <drivers/delay_timer.h>
+#include <lib/mmio.h>
 #include <spm.h>
 
 DEFINE_BAKERY_LOCK(spm_lock);
