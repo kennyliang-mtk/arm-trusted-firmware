@@ -35,6 +35,7 @@ BL31_SOURCES		+=	drivers/arm/cci/cci.c				\
 				lib/cpus/aarch64/cortex_a57.S			\
 				lib/cpus/aarch64/cortex_a72.S			\
 				${MTK_PLAT}/common/drivers/uart/8250_console.S	\
+				${MTK_PLAT}/common/drivers/rtc/rtc_common.c	\
 				${MTK_PLAT}/common/mtk_plat_common.c		\
 				${MTK_PLAT}/common/mtk_sip_svc.c		\
 				${MTK_PLAT_SOC}/aarch64/plat_helpers.S		\

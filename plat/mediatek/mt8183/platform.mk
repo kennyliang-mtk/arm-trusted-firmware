@@ -35,6 +35,7 @@ BL31_SOURCES    += drivers/arm/cci/cci.c                                 \
                    lib/cpus/aarch64/cortex_a73.S                         \
                    ${MTK_PLAT}/common/mtk_plat_common.c                  \
                    ${MTK_PLAT}/common/drivers/pmic_wrap/pmic_wrap_init.c \
+                   ${MTK_PLAT}/common/drivers/rtc/rtc_common.c           \
                    ${MTK_PLAT}/common/params_setup.c                     \
                    ${MTK_PLAT_SOC}/aarch64/plat_helpers.S                \
                    ${MTK_PLAT_SOC}/aarch64/platform_common.c             \
