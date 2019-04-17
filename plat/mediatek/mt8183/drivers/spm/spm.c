@@ -8,6 +8,7 @@
 #include <drivers/delay_timer.h>
 #include <lib/mmio.h>
 #include <spm.h>
+#include <spm_pmic_wrap.h>
 
 DEFINE_BAKERY_LOCK(spm_lock);
 
@@ -1036,6 +1037,7 @@ void spm_boot_init(void)
 	spm_init_pcm_register();
 	spm_init_event_vector(&allinone_lp4_3200_pcm);
 	spm_kick_pcm_to_run();
+	mt_spm_pmic_wrap_set_phase(PMIC_WRAP_PHASE_ALLINONE);
 
 	NOTICE("%s() end\n", __func__);
 }
