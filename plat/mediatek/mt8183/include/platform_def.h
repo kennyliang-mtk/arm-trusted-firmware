@@ -41,6 +41,7 @@
 #define APMIXEDSYS         (IO_PHYS + 0xC000)
 #define ARMPLL_LL_CON0     (APMIXEDSYS + 0x200)
 #define ARMPLL_L_CON0      (APMIXEDSYS + 0x210)
+#define ARMPLL_L_PWR_CON0  (APMIXEDSYS + 0x21c)
 #define MAINPLL_CON0       (APMIXEDSYS + 0x220)
 #define CCIPLL_CON0        (APMIXEDSYS + 0x290)
 
