@@ -6,6 +6,7 @@
 
 #include <arch_helpers.h>
 #include <debug.h>
+#include <delay_timer.h>
 #include <mt_gic_v3.h>
 #include <mmio.h>
 #include <platform_def.h>
@@ -210,8 +211,46 @@ static void go_to_sleep_after_wfi(void)
 	spm_output_wake_reason(&spm_wakesta, "suspend");
 }
 
+static void spm_enable_armpll_l(void)
+{
+	uint32_t temp;
+
+	/* power on */
+	temp = mmio_read_32(ARMPLL_L_PWR_CON0);
+	mmio_write_32(ARMPLL_L_PWR_CON0, temp | 0x1);
+
+	/* clear isolation */
+	temp = mmio_read_32(ARMPLL_L_PWR_CON0);
+	mmio_write_32(ARMPLL_L_PWR_CON0, temp & ~0x2);
+
+	/* enable pll */
+	temp = mmio_read_32(ARMPLL_L_CON0);
+	mmio_write_32(ARMPLL_L_CON0, temp | 0x1);
+
+	/* Add 20us delay for turning on PLL */
+	udelay(20);
+}
+
+static void spm_disable_armpll_l(void)
+{
+	uint32_t temp;
+
+	/* disable pll */
+	temp = mmio_read_32(ARMPLL_L_CON0);
+	mmio_write_32(ARMPLL_L_CON0, temp & ~0x1);
+
+	/* isolation */
+	temp = mmio_read_32(ARMPLL_L_PWR_CON0);
+	mmio_write_32(ARMPLL_L_PWR_CON0, temp | 0x2);
+
+	/* power off */
+	temp = mmio_read_32(ARMPLL_L_PWR_CON0);
+	mmio_write_32(ARMPLL_L_PWR_CON0, temp & ~0x1);
+}
+
 void spm_system_suspend(void)
 {
+	spm_disable_armpll_l();
 	spm_lock_get();
 	go_to_sleep_before_wfi();
 	spm_lock_release();
@@ -222,4 +261,5 @@ void spm_system_suspend_finish(void)
 	spm_lock_get();
 	go_to_sleep_after_wfi();
 	spm_lock_release();
+	spm_enable_armpll_l();
 }
