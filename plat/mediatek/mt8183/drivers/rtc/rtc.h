@@ -43,6 +43,11 @@ enum {
 };
 
 enum {
+	RTC_OSC32CON_UNLOCK1 = 0x1A57,
+	RTC_OSC32CON_UNLOCK2 = 0x2B68
+};
+
+enum {
 	RTC_PROT_UNLOCK1 = 0x586A,
 	RTC_PROT_UNLOCK2 = 0x9136
 };
@@ -80,7 +85,63 @@ enum {
 	RTC_BBPU_KEY	= 0x43 << 8
 };
 
+enum {
+	RTC_EMBCK_SRC_SEL	= 1 << 8,
+	RTC_EMBCK_SEL_MODE	= 3 << 6,
+	RTC_XOSC32_ENB		= 1 << 5,
+	RTC_REG_XOSC32_ENB	= 1 << 15
+};
+
+enum {
+	RTC_K_EOSC_RSV_0	= 1 << 8,
+	RTC_K_EOSC_RSV_1	= 1 << 9,
+	RTC_K_EOSC_RSV_2	= 1 << 10
+};
+
+/* PMIC TOP Register Definition */
+enum {
+	PMIC_RG_TOP_CON = 0x001E,
+	PMIC_RG_TOP_CKPDN_CON1 = 0x0112,
+	PMIC_RG_TOP_CKPDN_CON1_SET = 0x0114,
+	PMIC_RG_TOP_CKPDN_CON1_CLR = 0x0116,
+	PMIC_RG_TOP_CKSEL_CON0 = 0x0118,
+	PMIC_RG_TOP_CKSEL_CON0_SET = 0x011A,
+	PMIC_RG_TOP_CKSEL_CON0_CLR = 0x011C
+};
+
+/* PMIC SCK Register Definition */
+enum {
+	PMIC_RG_SCK_TOP_CKPDN_CON0 = 0x051A,
+	PMIC_RG_SCK_TOP_CKPDN_CON0_SET = 0x051C,
+	PMIC_RG_SCK_TOP_CKPDN_CON0_CLR = 0x051E,
+	PMIC_RG_EOSC_CALI_CON0 = 0x540
+};
+
+/* PMIC DCXO Register Definition */
+enum {
+	PMIC_RG_DCXO_CW00 = 0x0788,
+	PMIC_RG_DCXO_CW02 = 0x0790
+};
+
+enum {
+	PMIC_RG_SRCLKEN_IN0_HW_MODE_MASK = 0x1,
+	PMIC_RG_SRCLKEN_IN0_HW_MODE_SHIFT = 1,
+	PMIC_RG_SRCLKEN_IN1_HW_MODE_MASK = 0x1,
+	PMIC_RG_SRCLKEN_IN1_HW_MODE_SHIFT = 3,
+	PMIC_RG_RTC_EOSC32_CK_PDN_MASK = 0x1,
+	PMIC_RG_RTC_EOSC32_CK_PDN_SHIFT = 2,
+	PMIC_RG_EOSC_CALI_TD_MASK = 0x7,
+	PMIC_RG_EOSC_CALI_TD_SHIFT = 5,
+	PMIC_RG_XO_EN32K_MAN_MASK = 0x1,
+	PMIC_RG_XO_EN32K_MAN_SHIFT = 0
+};
+
 /* external API */
+uint16_t RTC_Read(uint32_t addr);
+void RTC_Write(uint32_t addr, uint16_t data);
+int32_t rtc_busy_wait(void);
+int32_t RTC_Write_Trigger(void);
+int32_t Writeif_unlock(void);
 void rtc_power_off_sequence(void);
 
 #endif /* __RTC_H__ */
