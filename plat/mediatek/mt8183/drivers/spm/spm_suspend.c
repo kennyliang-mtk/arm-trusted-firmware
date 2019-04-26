@@ -11,6 +11,7 @@
 #include <mmio.h>
 #include <platform_def.h>
 #include <plat_mt_cirq.h>
+#include <pmic.h>
 #include <spm.h>
 #include <uart8250.h>
 
@@ -251,6 +252,8 @@ static void spm_disable_armpll_l(void)
 void spm_system_suspend(void)
 {
 	spm_disable_armpll_l();
+	bcpu_enable(0);
+	bcpu_sram_enable(0);
 	spm_lock_get();
 	go_to_sleep_before_wfi();
 	spm_lock_release();
@@ -262,4 +265,6 @@ void spm_system_suspend_finish(void)
 	go_to_sleep_after_wfi();
 	spm_lock_release();
 	spm_enable_armpll_l();
+	bcpu_sram_enable(1);
+	bcpu_enable(1);
 }
