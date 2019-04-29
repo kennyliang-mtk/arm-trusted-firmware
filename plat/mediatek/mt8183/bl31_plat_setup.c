@@ -13,6 +13,7 @@
 #include <drivers/generic_delay_timer.h>
 #include <mcucfg.h>
 #include <lib/mmio.h>
+#include <mtk_mcdi.h>
 #include <mtk_plat_common.h>
 #include <mtspmc.h>
 #include <params_setup.h>
@@ -145,6 +146,7 @@ void bl31_platform_setup(void)
 	spmc_init();
 #endif
 	spm_boot_init();
+	mcdi_init();
 }
 
 /*******************************************************************************
