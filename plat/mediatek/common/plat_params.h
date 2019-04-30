@@ -15,6 +15,7 @@
 /* param type */
 enum {
 	PARAM_RESET,
+	PARAM_COREBOOT_TABLE,
 };
 
 struct gpio_info {
@@ -31,6 +32,11 @@ struct bl31_plat_param {
 struct bl31_gpio_param {
 	struct bl31_plat_param h;
 	struct gpio_info gpio;
+};
+
+struct bl31_u64_param {
+	struct bl31_plat_param h;
+	uint64_t value;
 };
 
 #endif

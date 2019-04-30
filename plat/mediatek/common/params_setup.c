@@ -5,6 +5,7 @@
  */
 
 #include <common/debug.h>
+#include <lib/coreboot.h>
 #include <plat_params.h>
 #include <string.h>
 
@@ -28,6 +29,12 @@ void params_early_setup(void *plat_param_from_bl2)
 			memcpy(&param_reset, &gpio_param->gpio,
 			       sizeof(struct gpio_info));
 			break;
+#if COREBOOT
+		case PARAM_COREBOOT_TABLE:
+			coreboot_table_setup((void *)
+				((struct bl31_u64_param *)bl2_param)->value);
+			break;
+#endif
 		default:
 			ERROR("not expected type found %lld\n",
 			      bl2_param->type);
