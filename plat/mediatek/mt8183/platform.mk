@@ -9,6 +9,7 @@ MTK_PLAT_SOC  := ${MTK_PLAT}/${PLAT}
 
 PLAT_INCLUDES := -I${MTK_PLAT}/common/                            \
                  -I${MTK_PLAT_SOC}/drivers/                       \
+                 -I${MTK_PLAT_SOC}/drivers/devapc/                \
                  -I${MTK_PLAT_SOC}/drivers/spmc/                  \
                  -I${MTK_PLAT_SOC}/drivers/gpio/                  \
                  -I${MTK_PLAT_SOC}/drivers/pmic/                  \
@@ -39,6 +40,7 @@ BL31_SOURCES    += drivers/arm/cci/cci.c                                 \
                    ${MTK_PLAT}/common/params_setup.c                     \
                    ${MTK_PLAT_SOC}/aarch64/plat_helpers.S                \
                    ${MTK_PLAT_SOC}/aarch64/platform_common.c             \
+                   ${MTK_PLAT_SOC}/drivers/devapc/devapc.c               \
                    ${MTK_PLAT_SOC}/drivers/mcsi/mcsi.c                   \
                    ${MTK_PLAT_SOC}/drivers/pmic/pmic.c                   \
                    ${MTK_PLAT_SOC}/drivers/rtc/rtc.c                     \
