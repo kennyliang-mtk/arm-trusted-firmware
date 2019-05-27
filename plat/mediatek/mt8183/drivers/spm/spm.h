@@ -2505,6 +2505,33 @@ struct wake_status {
 	uint32_t log_index;
 };
 
+typedef struct spm_data {
+	unsigned int cmd;
+	union {
+		struct {
+			unsigned int sys_timestamp_l;
+			unsigned int sys_timestamp_h;
+			unsigned int sys_src_clk_l;
+			unsigned int sys_src_clk_h;
+			unsigned int spm_opt;
+		} suspend;
+		struct {
+			unsigned int args1;
+			unsigned int args2;
+			unsigned int args3;
+			unsigned int args4;
+			unsigned int args5;
+			unsigned int args6;
+			unsigned int args7;
+		} args;
+	} u;
+} spm_data_t;
+
+enum {
+	SPM_SUSPEND,
+	SPM_RESUME,
+};
+
 extern void spm_disable_pcm_timer(void);
 extern void spm_set_bootaddr(unsigned long bootaddr);
 extern void spm_set_cpu_status(int cpu);

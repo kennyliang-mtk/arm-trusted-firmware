@@ -28,6 +28,7 @@
 #include <pmic.h>
 #include <spm.h>
 #include <spm_suspend.h>
+#include <sspm.h>
 #include <rtc.h>
 
 /* Local power state for power domains in Run state. */
@@ -372,10 +373,23 @@ static void plat_power_domain_suspend(const psci_power_state_t *state)
 		plat_cluster_pwrdwn_common(mpidr, cluster);
 
 	if (afflvl2) {
+		spm_data_t spm_d = { .cmd = SPM_SUSPEND };
+		uint32_t *d = (uint32_t *)&spm_d;
+		uint32_t l = sizeof(spm_d) / sizeof(uint32_t);
+
 		mcdi_ctrl_suspend();
 
 		spm_set_bootaddr(secure_entrypoint);
+
+		if (MCDI_SSPM)
+			sspm_ipi_send_non_blocking(IPI_ID_SUSPEND, d);
+
 		spm_system_suspend();
+
+		if (MCDI_SSPM)
+			while (sspm_ipi_recv_non_blocking(IPI_ID_SUSPEND, d, l))
+				;
+
 		gic_dist_save();
 	} else {
 		mcdi_ctrl_cluster_cpu_off(cluster, cpu, cluster_off);
@@ -390,10 +404,22 @@ static void plat_power_domain_suspend_finish(const psci_power_state_t *state)
 	bool afflvl2 = (pds[MPIDR_AFFLVL2] == MTK_LOCAL_STATE_OFF);
 
 	if (afflvl2) {
+		spm_data_t spm_d = { .cmd = SPM_RESUME };
+		uint32_t *d = (uint32_t *)&spm_d;
+		uint32_t l = sizeof(spm_d) / sizeof(uint32_t);
+
 		gic_setup();
 		gic_dist_restore();
 		mmio_write_32(EMI_WFIFO, 0xf);
+
+		if (MCDI_SSPM)
+			sspm_ipi_send_non_blocking(IPI_ID_SUSPEND, d);
+
 		spm_system_suspend_finish();
+
+		if (MCDI_SSPM)
+			while (sspm_ipi_recv_non_blocking(IPI_ID_SUSPEND, d, l))
+				;
 
 		mcdi_ctrl_resume();
 	}
