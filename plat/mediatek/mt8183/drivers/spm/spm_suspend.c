@@ -13,7 +13,7 @@
 #include <plat_mt_cirq.h>
 #include <pmic.h>
 #include <spm.h>
-#include <drivers/ti/uart/uart_16550.h>
+#include <uart.h>
 
 #define SPM_SYSCLK_SETTLE       99
 
@@ -176,6 +176,9 @@ void go_to_sleep_before_wfi(void)
 	spm_set_pcm_wdt(0);
 	spm_disable_pcm_timer();
 
+	if (is_infra_pdn(suspend_ctrl.pcm_flags))
+		mt_uart_save();
+
 	console_switch_state(CONSOLE_FLAG_BOOT);
 	INFO("cpu%d: \"%s\", wakesrc = 0x%x, pcm_con1 = 0x%x\n",
 	     cpu, spm_get_firmware_version(), suspend_ctrl.wake_src,
@@ -186,19 +189,13 @@ void go_to_sleep_before_wfi(void)
 	     mmio_read_32(SPM_SRC_REQ));
 	console_switch_state(CONSOLE_FLAG_RUNTIME);
 }
-extern console_t *console_list;
-static void enable_uart(void)
-{
-	static console_16550_t console;
-	console_list = NULL;
-	console_16550_register(UART0_BASE, UART_CLOCK, UART_BAUDRATE, &console);
-}
 
 static void go_to_sleep_after_wfi(void)
 {
 	struct wake_status spm_wakesta;
 
-	enable_uart();
+	if (is_infra_pdn(suspend_ctrl.pcm_flags))
+		mt_uart_restore();
 
 	mt_cirq_flush();
 	mt_cirq_disable();
