@@ -46,6 +46,49 @@ static void set_master_domain(uint32_t master_index, enum MASK_DOM domain)
 	mmio_clrsetbits_32(base, clr_bit, set_bit);
 }
 
+static void set_master_domain_remap_infra(enum MASK_DOM domain_emi_view,
+					enum MASK_DOM domain_infra_view)
+{
+	uintptr_t base;
+	uint32_t clr_bit;
+	uint32_t set_bit;
+
+	if (domain_emi_view < DOMAIN_10) {
+		base = DEVAPC_INFRA_DOM_RMP_0;
+		clr_bit = 0x7 << (domain_emi_view * 3);
+		set_bit = domain_infra_view << (domain_emi_view * 3);
+		mmio_clrsetbits_32(base, clr_bit, set_bit);
+	} else if (domain_emi_view > DOMAIN_10) {
+		base = DEVAPC_INFRA_DOM_RMP_1;
+		domain_emi_view = domain_emi_view - DOMAIN_11;
+		clr_bit = 0x7 << (domain_emi_view * 3 + 1);
+		set_bit = domain_infra_view << (domain_emi_view * 3 + 1);
+		mmio_clrsetbits_32(base, clr_bit, set_bit);
+	} else if (domain_emi_view == DOMAIN_10) {
+		base = DEVAPC_INFRA_DOM_RMP_0;
+		clr_bit = 0x3 << (domain_emi_view * 3);
+		set_bit = domain_infra_view << (domain_emi_view * 3);
+		mmio_clrsetbits_32(base, clr_bit, set_bit);
+
+		base = DEVAPC_INFRA_DOM_RMP_1;
+		set_bit = (domain_infra_view & 0x4) >> 2;
+		mmio_clrsetbits_32(base, 0x1, set_bit);
+	}
+}
+
+static void set_master_domain_remap_mm(enum MASK_DOM domain_emi_view,
+					enum MASK_DOM domain_mm_view)
+{
+	uintptr_t base;
+	uint32_t clr_bit;
+	uint32_t set_bit;
+
+	base = DEVAPC_MM_DOM_RMP_0;
+	clr_bit = 0x3 << (domain_emi_view * 2);
+	set_bit = domain_mm_view << (domain_emi_view * 2);
+
+	mmio_clrsetbits_32(base, clr_bit, set_bit);
+}
 
 static void set_module_apc(enum DAPC_SLAVE_TYPE slave_type, uint32_t module,
 			   enum MASK_DOM domain_num,
@@ -76,6 +119,21 @@ static void set_module_apc(enum DAPC_SLAVE_TYPE slave_type, uint32_t module,
 static void set_default_master_transaction(void)
 {
 	set_master_transaction(MASTER_SSPM, SECURE_TRANSACTION);
+}
+
+static void set_default_master_domain(void)
+{
+	set_master_domain(MASTER_SCP, DOMAIN_1);
+	set_master_domain_remap_infra(DOMAIN_1, DOMAIN_1);
+	set_master_domain_remap_mm(DOMAIN_1, DOMAIN_1);
+
+	set_master_domain(MASTER_SPM, DOMAIN_2);
+	set_master_domain_remap_infra(DOMAIN_2, DOMAIN_2);
+	set_master_domain_remap_mm(DOMAIN_2, DOMAIN_2);
+
+	set_master_domain(MASTER_SSPM, DOMAIN_2);
+	set_master_domain_remap_infra(DOMAIN_2, DOMAIN_2);
+	set_master_domain_remap_mm(DOMAIN_2, DOMAIN_2);
 }
 
 static void set_default_slave_permission(void)
@@ -125,6 +183,7 @@ void devapc_init(void)
 	mmio_write_32(DEVAPC_MD_APC_CON, 0x80000001);
 
 	set_default_master_transaction();
+	set_default_master_domain();
 	set_default_slave_permission();
 	dump_devapc();
 }
@@ -141,8 +200,7 @@ static void dump_devapc(void)
 			       "(INFRA)D2_APC_%d = 0x%x\n",
 		i, mmio_read_32(DEVAPC_INFRA_D0_APC_0 + i * 4),
 		i, mmio_read_32(DEVAPC_INFRA_D0_APC_0 + 0x100 + i * 4),
-		i, mmio_read_32(DEVAPC_INFRA_D0_APC_0 + 0x200 + i * 4)
-		);
+		i, mmio_read_32(DEVAPC_INFRA_D0_APC_0 + 0x200 + i * 4));
 	}
 
 	for (i = 0; i < 9; i++) {
@@ -151,8 +209,7 @@ static void dump_devapc(void)
 			       "(MM)D2_APC_%d = 0x%x\n",
 		i, mmio_read_32(DEVAPC_MM_D0_APC_0 + i * 4),
 		i, mmio_read_32(DEVAPC_MM_D0_APC_0 + 0x100 + i * 4),
-		i, mmio_read_32(DEVAPC_MM_D0_APC_0 + 0x200 + i * 4)
-		);
+		i, mmio_read_32(DEVAPC_MM_D0_APC_0 + 0x200 + i * 4));
 	}
 
 	for (i = 0; i < 4; i++) {
@@ -162,5 +219,13 @@ static void dump_devapc(void)
 
 	INFO("[DEVAPC] MAS_SEC_0 = 0x%x\n",
 			mmio_read_32(DEVAPC_INFRA_MAS_SEC_0));
+
+	INFO("[DEVAPC]  (INFRA)MAS_DOMAIN_REMAP_0 = 0x%x, "
+			"(INFRA)MAS_DOMAIN_REMAP_1 = 0x%x\n",
+			mmio_read_32(DEVAPC_INFRA_DOM_RMP_0),
+			mmio_read_32(DEVAPC_INFRA_DOM_RMP_1));
+
+	INFO("[DEVAPC]  (MM)MAS_DOMAIN_REMAP_0 = 0x%x\n",
+			mmio_read_32(DEVAPC_MM_DOM_RMP_0));
 }
 
