@@ -13,6 +13,13 @@
 #define HW_SUPPORT_UART_PORTS	2
 #define DRV_SUPPORT_UART_PORTS	2
 
+/* console UART clock cg */
+#define UART_CLOCK_GATE_SET		(INFRACFG_AO_BASE + 0x80)
+#define UART_CLOCK_GATE_CLR		(INFRACFG_AO_BASE + 0x84)
+#define UART_CLOCK_GATE_STA		(INFRACFG_AO_BASE + 0x90)
+#define UART0_CLOCK_GATE_BIT		(1U<<22)
+#define UART1_CLOCK_GATE_BIT		(1U<<23)
+
 /* UART registers */
 #define UART_RBR(_baseaddr)			(_baseaddr + 0x0)
 #define UART_THR(_baseaddr)			(_baseaddr + 0x0)
@@ -87,5 +94,7 @@ struct mt_uart {
 /* external API */
 void mt_uart_save(void);
 void mt_uart_restore(void);
+void mt_console_uart_cg(int on);
+int mt_console_uart_cg_status(void);
 
 #endif /* __UART_H__ */

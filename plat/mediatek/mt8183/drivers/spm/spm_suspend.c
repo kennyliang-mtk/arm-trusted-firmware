@@ -179,7 +179,9 @@ void go_to_sleep_before_wfi(void)
 	if (is_infra_pdn(suspend_ctrl.pcm_flags))
 		mt_uart_save();
 
-	console_switch_state(CONSOLE_FLAG_BOOT);
+	if (!mt_console_uart_cg_status())
+		console_switch_state(CONSOLE_FLAG_BOOT);
+
 	INFO("cpu%d: \"%s\", wakesrc = 0x%x, pcm_con1 = 0x%x\n",
 	     cpu, spm_get_firmware_version(), suspend_ctrl.wake_src,
 	     mmio_read_32(PCM_CON1));
@@ -187,7 +189,9 @@ void go_to_sleep_before_wfi(void)
 	     settle, mmio_read_32(PCM_TIMER_VAL) / 32768,
 	     suspend_ctrl.pcm_flags, suspend_ctrl.pcm_flags1,
 	     mmio_read_32(SPM_SRC_REQ));
-	console_switch_state(CONSOLE_FLAG_RUNTIME);
+
+	if (!mt_console_uart_cg_status())
+		console_switch_state(CONSOLE_FLAG_RUNTIME);
 }
 
 static void go_to_sleep_after_wfi(void)
@@ -204,9 +208,14 @@ static void go_to_sleep_after_wfi(void)
 	spm_set_pcm_wdt(0);
 	spm_get_wakeup_status(&spm_wakesta);
 	spm_clean_after_wakeup();
-	console_switch_state(CONSOLE_FLAG_BOOT);
+
+	if (!mt_console_uart_cg_status())
+		console_switch_state(CONSOLE_FLAG_BOOT);
+
 	spm_output_wake_reason(&spm_wakesta, "suspend");
-	console_switch_state(CONSOLE_FLAG_RUNTIME);
+
+	if (!mt_console_uart_cg_status())
+		console_switch_state(CONSOLE_FLAG_RUNTIME);
 }
 
 static void spm_enable_armpll_l(void)

@@ -96,3 +96,16 @@ void mt_uart_save(void)
 		uart->registers.scr = mmio_read_32(UART_SCR(base));
 	}
 }
+
+void mt_console_uart_cg(int on)
+{
+	if (on)
+		mmio_write_32(UART_CLOCK_GATE_CLR, UART0_CLOCK_GATE_BIT);
+	else
+		mmio_write_32(UART_CLOCK_GATE_SET, UART0_CLOCK_GATE_BIT);
+}
+
+int mt_console_uart_cg_status(void)
+{
+	return mmio_read_32(UART_CLOCK_GATE_STA) & UART0_CLOCK_GATE_BIT;
+}
