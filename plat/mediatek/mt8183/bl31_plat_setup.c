@@ -25,6 +25,7 @@
 #include <scu.h>
 #include <spm.h>
 #include <drivers/ti/uart/uart_16550.h>
+#include <emi_mpu.h>
 
 static entry_point_info_t bl32_ep_info;
 static entry_point_info_t bl33_ep_info;
@@ -143,6 +144,18 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 void bl31_platform_setup(void)
 {
 	devapc_init();
+
+	/* set permission */
+	/* for DOMAIN1: only can access 0x50000000 ~ 0x52900000(use region0) */
+	emi_mpu_set_region_protection(
+		0x50000000, 0x52900000, 0, (SEC_RW_NSEC_W << 3));
+	/* for DOMAIN1/2: forbidden all access to DRAM (use region1/region2) */
+	emi_mpu_set_region_protection(
+		0x40000000UL, 0x60000000UL, 1, (FORBIDDEN << 3 | FORBIDDEN << 6));
+	emi_mpu_set_region_protection(
+		0x60000000UL, 0x80000000UL, 2, (FORBIDDEN << 3 | FORBIDDEN << 6));
+
+	dump_emi_mpu_regions();
 
 	platform_setup_cpu();
 
