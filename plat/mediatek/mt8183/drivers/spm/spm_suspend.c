@@ -10,7 +10,6 @@
 #include <mt_gic_v3.h>
 #include <lib/mmio.h>
 #include <platform_def.h>
-#include <plat_mt_cirq.h>
 #include <pmic.h>
 #include <spm.h>
 #include <uart.h>
@@ -164,8 +163,6 @@ void go_to_sleep_before_wfi(void)
 	uint32_t settle;
 
 	mt_irq_mask_all(&mask);
-	mt_cirq_clone_gic();
-	mt_cirq_enable();
 
 	settle = spm_set_sysclk_settle();
 	spm_set_cpu_status(cpu);
@@ -201,8 +198,6 @@ static void go_to_sleep_after_wfi(void)
 	if (is_infra_pdn(suspend_ctrl.pcm_flags))
 		mt_uart_restore();
 
-	mt_cirq_flush();
-	mt_cirq_disable();
 	mt_irq_mask_restore(&mask);
 
 	spm_set_pcm_wdt(0);
