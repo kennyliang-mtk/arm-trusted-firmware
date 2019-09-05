@@ -255,6 +255,5 @@ bool check_mcdi_ctl_stat(void)
 
 void mcdi_init(void)
 {
-	check_mcdi_ctl_stat();
 	mcdi_avail_cpu_mask_write(0x01); /* cpu0 default on */
 }
