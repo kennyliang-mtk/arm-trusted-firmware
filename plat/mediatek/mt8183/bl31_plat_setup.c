@@ -146,13 +146,13 @@ void bl31_platform_setup(void)
 	devapc_init();
 
 	/* set permission */
-	emi_mpu_set_region_protection(0x40000000UL, 0x50000000UL, 0,
+	emi_mpu_set_region_protection(0x40000000UL, 0x4FFFFFFFUL, 0,
 				(FORBIDDEN << 3 | FORBIDDEN << 6));
-	emi_mpu_set_region_protection(0x50000000UL, 0x52900000UL, 1,
+	emi_mpu_set_region_protection(0x50000000UL, 0x528FFFFFUL, 1,
 				(FORBIDDEN << 6));
-	emi_mpu_set_region_protection(0x52900000UL, 0x60000000UL, 2,
+	emi_mpu_set_region_protection(0x52900000UL, 0x5FFFFFFFUL, 2,
 				(FORBIDDEN << 3 | FORBIDDEN << 6));
-	emi_mpu_set_region_protection(0x60000000UL, 0x80000000UL, 3,
+	emi_mpu_set_region_protection(0x60000000UL, 0x7FFFFFFFUL, 3,
 				(FORBIDDEN << 3 | FORBIDDEN << 6));
 	dump_emi_mpu_regions();
 
